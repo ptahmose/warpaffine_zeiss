@@ -1,0 +1,18 @@
+// SPDX-FileCopyrightText: 2023 Carl Zeiss Microscopy GmbH
+//
+// SPDX-License-Identifier: MIT
+
+#pragma once
+
+#define LIBWARPAFFINE_UNIX_ENVIRONMENT @LibWarpAffine_UNIX_ENVIRONMENT@
+#define LIBWARPAFFINE_WIN32_ENVIRONMENT @LibWarpAffine_WIN32_ENVIRONMENT@
+
+#define LIBWARPAFFINE_INTELPERFORMANCEPRIMITIVES_AVAILABLE @LibWarpAffine_INTELPERFORMANCEPRIMITIVES_AVAILABLE@
+
+#define LIBWARPAFFINE_TBB_VERSION "@libWarpAffine_TBB_VERSION@"
+
+// those numbers define the version of warpaffine - it is set in the root CMakeLists.txt (with the project declaration) 
+#define LIBWARPAFFINE_VERSION_MAJOR "@warpaffine_VERSION_MAJOR@"
+#define LIBWARPAFFINE_VERSION_MINOR "@warpaffine_VERSION_MINOR@"
+#define LIBWARPAFFINE_VERSION_PATCH "@warpaffine_VERSION_PATCH@"
+#define LIBWARPAFFINE_VERSION_TWEAK "@warpaffine_VERSION_TWEAK@"
