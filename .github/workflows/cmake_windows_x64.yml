@@ -1,0 +1,90 @@
+name: CMake-Windows-x64
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Cache vcpkg
+      uses: actions/cache@v3
+      with:
+        path: 'C:/vcpkg/installed'
+        key: vcpkg-x64-windows-
+        restore-keys: |
+          vcpkg-x64-windows-
+    
+    - name: Install dependencies
+      id: install-ipp
+      shell: bash
+      run: |
+         # We get IPP from Nuget, this seems to be the easiest option on Windows (c.f. https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html#ipp).
+         # For whatever reasons, running the installers did not work (they seem to bring up an UI and wait for input,
+         # even when running them with the "/s"-option).
+         nuget.exe install intelipp.static.win-x64 -OutputDirectory ./intel_ipp
+         # In this Nuget-version, the headers and libs are found in a folder "lib/native", so we search for this folder,
+         # and we need to convert the path to a Windows-style-path, which does the tool "cygpath" for us.
+         # Then we store this path, so that we can retrieve it in the next action
+         folder_ipproot=$(find "$(pwd)/intel_ipp" -wholename "*/lib/native" -type d)
+         # it seems in current versions the paths have changed - so if above line gave no result, then try the new path
+         if [[ -z $folder_ipproot ]]; then
+           folder_ipproot=$(find "$(pwd)/intel_ipp" -wholename "*/build/native" -type d)
+         fi
+         echo "=================================="
+         echo "${folder_ipproot}"
+         folder_ipproot_windowsstyle=$(cygpath -m "${folder_ipproot}")
+         echo "${folder_ipproot_windowsstyle}"
+         echo "IPPROOT=${folder_ipproot_windowsstyle}" >> "$GITHUB_OUTPUT"
+         echo "=================================="
+         vcpkg install --triplet x64-windows-static tbb eigen3 rapidjson 'curl[ssl]'
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DIPPROOT="${{ steps.install-ipp.outputs.IPPROOT }}" -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3=ON  -DLIBCZI_BUILD_CURL_BASED_STREAM=ON -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_LIBCURL=ON -DWARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON=ON -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake  -DVCPKG_TARGET_TRIPLET=x64-windows-static 
+
+    - name: Build
+      # Build your program with the given configuration
+      run: |
+        $processorCount = [System.Environment]::ProcessorCount
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j"$processorCount"
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      # Execute tests defined by the CMake configuration.
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest -C ${{env.BUILD_TYPE}}
+
+    # gather the binaries and put them into a zip-file
+    - name: Package
+      id: create_artifact
+      shell: bash
+      run: |
+          mkdir release
+          ls "./build/warpaffine/${{env.BUILD_TYPE}}/"
+          7z a -r warpaffine.zip "./build/warpaffine/${{env.BUILD_TYPE}}/*.exe" "./build/warpaffine/${{env.BUILD_TYPE}}/*.dll"
+          name="warpaffine-windows-win64-$(git describe --always).zip"
+          mv -v ./warpaffine.zip "release/${name}"
+          echo "name=${name}" >> "$GITHUB_OUTPUT"
+          echo "path=release/${name}" >> "$GITHUB_OUTPUT"
+
+    # upload the build-results to artifacts-store
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: Release
+        path: release
