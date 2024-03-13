@@ -1,5 +1,9 @@
 # warpaffine
 
+[![REUSE status](https://api.reuse.software/badge/github.com/ZEISS/libczi)](https://api.reuse.software/info/github.com/ZEISS/warpaffine)
+[![CMake](https://github.com/ZEISS/warpaffine/actions/workflows/cmake.yml/badge.svg?branch=main&event=push)](https://github.com/ZEISS/warpaffine/actions/workflows/cmake.yml)
+[![MegaLinter](https://github.com/ZEISS/warpaffine/actions/workflows/mega-linter.yml/badge.svg?branch=main&event=push)](https://github.com/ZEISS/warpaffine/actions/workflows/mega-linter.yml)
+
 This is an experimental effort at implementing a "Deskew operation" with the best performance possible.
 
 
