@@ -102,9 +102,7 @@ using namespace libCZI;
 /*static*/LinearReadingOrderHelper::OrderReadingResult LinearReadingOrderHelper::DetermineOrder(libCZI::ICZIReader* subblock_repository, const ReadingConstraints& options)
 {
     const auto document_info = GetCziDocumentInfo(subblock_repository);
-    //auto ordered_by_fileposition = CreateOrder_OrderedByFilePosition(subblock_repository, document_info);
     auto initial_inspection_result = CreateInitialInspectionResult(subblock_repository, document_info);
-    //auto ordered_by_fileposition = initial_inspection_result.subblocks_ordered_by_fileposition;
 
     OrderReadingResult result;
 

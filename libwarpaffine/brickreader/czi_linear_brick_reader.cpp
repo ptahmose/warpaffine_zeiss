@@ -185,10 +185,6 @@ void CziBrickReaderLinearReading::ReadSubblocksThread()
 
         if (this->context_.GetCommandLineOptions().GetTestStopPipelineAfter() != TestStopPipelineAfter::kReadFromSource)
         {
-            // new
-            //++this->statistics_number_of_compressed_subblocks_in_flight_;
-
-            // old
             this->memory_used_by_subblocks_in_queue_.fetch_add(DetermineMemorySizeOfSubblock(subblock.get()));
             ++this->pending_tasks_count_;
             ++this->statistics_number_of_compressed_subblocks_in_flight_;
