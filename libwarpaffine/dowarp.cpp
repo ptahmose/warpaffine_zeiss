@@ -573,8 +573,6 @@ std::tuple<libCZI::CompressionMode, std::shared_ptr<libCZI::IMemoryBlock>> DoWar
     throw logic_error(error_text.str());
 }
 
-// ..................
-
 void DoWarp::DestinationMemoryReleased()
 {
     this->DoResume();
