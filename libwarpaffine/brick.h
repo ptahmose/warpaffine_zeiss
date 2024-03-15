@@ -15,10 +15,10 @@ struct BrickInfo
 {
     libCZI::PixelType   pixelType;      ///< The pixeltype of the brick.
     std::uint32_t       width;          ///< The width of the brick in pixels.
-    std::uint32_t		height;         ///< The height of the brick in pixels.
-    std::uint32_t		depth;          ///< The depth of the brick in pixels.
+    std::uint32_t       height;         ///< The height of the brick in pixels.
+    std::uint32_t       depth;          ///< The depth of the brick in pixels.
     std::uint32_t       stride_line;    ///< The stride of a line in bytes.
-    std::uint32_t		stride_plane;   ///< The stride of a slice (aka plane) in bytes.
+    std::uint32_t       stride_plane;   ///< The stride of a slice (aka plane) in bytes.
 
     /// Gets size of the brick in bytes. This is only counting the "payload" data.
     /// \returns The (payload) size of the brick in bytes.
