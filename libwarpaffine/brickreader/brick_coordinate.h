@@ -18,7 +18,7 @@ struct BrickCoordinate
 
     /// Less-than comparison operator - required to use this struct as a key in a map.
     /// \param  other The object to compare with.
-    /// \returns {bool} True if the current object appears before the specified object.
+    /// \returns {bool} True if the current object should go before the specified object.
     bool operator<(const BrickCoordinate& other) const
     {
         // t has highest precedence
