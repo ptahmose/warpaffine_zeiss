@@ -26,7 +26,7 @@ option(WARPAFFINE_BUILD_CLANGTIDY "Build with Clang-Tidy" OFF)
 
 # This option is only relevant if IPP is not found - i.e. we still try to find the IPP libraries, but if we don't find them, 
 # we don't fail the build. The application will then be somewhat crippled (i.e. way slower), but should nevertheless be operational.
-option(WARPAFFINE_ALLOW_BUILD_WITHOUT_IPP "Allow for a build without Intel-IPP" OFF)
+option(WARPAFFINE_ALLOW_BUILD_WITHOUT_IPP "Allow for a build without Intel-IPP" ON)
 
 # This option allows to "downlad a private copy of Eigen3 and usage of this for libCZI and warpaffine". If this option is not given,
 #  then the availability of an Eigen3-package (from the system's package manager') is assumed and required.
