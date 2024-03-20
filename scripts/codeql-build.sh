@@ -1,6 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Carl Zeiss Microscopy GmbH
-#
-# SPDX-License-Identifier: MIT
+#!/bin/sh
 
 # This script is used to build the project for the CodeQL-action.
 # We install the required dependencies and build the project using CMake, specifying the appropriate switches.
