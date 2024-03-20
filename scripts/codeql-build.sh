@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script is used to build the project for the CodeQL-action.
 # We install the required dependencies and build the project using CMake, specifying the appropriate switches.
