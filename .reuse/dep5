@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: warpaffine
 Upstream-Contact: Carl Zeiss Microscopy GmbH <github.microscopy@zeiss.com>
-Source: https://github.com/zeissmicroscopy/warpaffine
+Source: https://github.com/ZEISS/warpaffine
 
 Files: cla_*.txt CMakeLists.txt CMakeSettings.json CODE_OF_CONDUCT.md CONTRIBUTING.md README.md SECURITY.md THIRD_PARTY_LICENSES.txt .gitignore
 Copyright: 2017-2022 Carl Zeiss Microscopy GmbH
