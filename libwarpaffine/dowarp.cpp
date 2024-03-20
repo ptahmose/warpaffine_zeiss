@@ -454,7 +454,7 @@ std::vector<IntRect> DoWarp::Create2dTiling(const IntRect& rectangle)
     const uint32_t rows_count = (rectangle.h + max_extent - 1) / max_extent;
     const uint32_t columns_count = (rectangle.w + max_extent - 1) / max_extent;
     std::vector<IntRect> tiling_result;
-    tiling_result.reserve(columns_count * rows_count);
+    tiling_result.reserve(static_cast<size_t>(columns_count) * rows_count);
     for (uint32_t rows = 0; rows < rows_count; ++rows)
     {
         for (uint32_t columns = 0; columns < columns_count; ++columns)

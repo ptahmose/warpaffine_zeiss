@@ -44,7 +44,7 @@ public:
         bitmapLockInfo.ptrData = this->ptrData;
         bitmapLockInfo.ptrDataRoi = this->ptrData;
         bitmapLockInfo.stride = this->stride;
-        bitmapLockInfo.size = this->stride * this->height;
+        bitmapLockInfo.size = static_cast<uint64_t>(this->stride) * this->height;
         return bitmapLockInfo;
     }
 
