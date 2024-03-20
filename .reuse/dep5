@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: imgdoc2
+Upstream-Name: warpaffine
 Upstream-Contact: Carl Zeiss Microscopy GmbH <github.microscopy@zeiss.com>
 Source: https://github.com/zeissmicroscopy/warpaffine
 
