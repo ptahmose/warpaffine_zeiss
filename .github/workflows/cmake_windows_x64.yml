@@ -74,17 +74,18 @@ jobs:
       id: create_artifact
       shell: bash
       run: |
-          mkdir release
           ls "./build/warpaffine/${{env.BUILD_TYPE}}/"
-          7z a -r warpaffine.zip "./build/warpaffine/${{env.BUILD_TYPE}}/*.exe" "./build/warpaffine/${{env.BUILD_TYPE}}/*.dll" "./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt"
-          name="warpaffine-windows-win64-$(git describe --always).zip"
-          mv -v ./warpaffine.zip "release/${name}"
+          mkdir release
+          cp "./build/warpaffine/${{env.BUILD_TYPE}}/*.exe" " release/
+          cp "./build/warpaffine/${{env.BUILD_TYPE}}/*.dll" " release/
+          cp "./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt" " release/
+          name="warpaffine-windows-win64-$(git describe --always)"
           echo "name=${name}" >> "$GITHUB_OUTPUT"
-          echo "path=release/${name}" >> "$GITHUB_OUTPUT"
+          echo "path=release" >> "$GITHUB_OUTPUT"
 
     # upload the build-results to artifacts-store
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
-        name: ${{ steps.create_artifact.outputs.name }}
-        path: ${{ steps.create_artifact.outputs.path }}
+        name: ${{ steps.create_artifact.outputs.name }} # This is the name of the artifact that will be uploaded to GitHub, determined in the step above
+        path: ${{ steps.create_artifact.outputs.path }} # This is the path to the artifact that will be uploaded to GitHub, determined in the step above
