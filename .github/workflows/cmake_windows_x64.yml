@@ -76,9 +76,9 @@ jobs:
       run: |
           ls "./build/warpaffine/${{env.BUILD_TYPE}}/"
           mkdir release
-          cp "./build/warpaffine/${{env.BUILD_TYPE}}/*.exe" " release/
-          cp "./build/warpaffine/${{env.BUILD_TYPE}}/*.dll" " release/
-          cp "./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt" " release/
+          cp "./build/warpaffine/${{env.BUILD_TYPE}}/*.exe" release/
+          cp "./build/warpaffine/${{env.BUILD_TYPE}}/*.dll" release/
+          cp "./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt" release/
           name="warpaffine-windows-win64-$(git describe --always)"
           echo "name=${name}" >> "$GITHUB_OUTPUT"
           echo "path=release" >> "$GITHUB_OUTPUT"
@@ -88,4 +88,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: ${{ steps.create_artifact.outputs.name }} # This is the name of the artifact that will be uploaded to GitHub, determined in the step above
-        path: ${{ steps.create_artifact.outputs.path }} # This is the path to the artifact that will be uploaded to GitHub, determined in the step above
+        path: ${{ steps.create_artifact.outputs.path }} # This is the path to the artifacts that will be uploaded to GitHub, determined in the step above
