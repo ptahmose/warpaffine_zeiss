@@ -81,7 +81,6 @@ jobs:
           mv -v ./warpaffine.zip "release/${name}"
           echo "name=${name}" >> "$GITHUB_OUTPUT"
           echo "path=release/${name}" >> "$GITHUB_OUTPUT"
-          #echo "::set-output name=filename::name"
 
     # upload the build-results to artifacts-store
     - name: Upload artifacts
