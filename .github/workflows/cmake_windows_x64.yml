@@ -76,8 +76,7 @@ jobs:
       run: |
           mkdir release
           ls "./build/warpaffine/${{env.BUILD_TYPE}}/"
-          cp ./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt "./build/warpaffine/${{env.BUILD_TYPE}}/"
-          7z a -r warpaffine.zip "./build/warpaffine/${{env.BUILD_TYPE}}/*.exe" "./build/warpaffine/${{env.BUILD_TYPE}}/*.dll"
+          7z a -r warpaffine.zip "./build/warpaffine/${{env.BUILD_TYPE}}/*.exe" "./build/warpaffine/${{env.BUILD_TYPE}}/*.dll" "./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt"
           name="warpaffine-windows-win64-$(git describe --always).zip"
           mv -v ./warpaffine.zip "release/${name}"
           echo "name=${name}" >> "$GITHUB_OUTPUT"
