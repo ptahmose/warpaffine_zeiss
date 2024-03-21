@@ -79,12 +79,13 @@ jobs:
           7z a -r warpaffine.zip "./build/warpaffine/${{env.BUILD_TYPE}}/*.exe" "./build/warpaffine/${{env.BUILD_TYPE}}/*.dll" "./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt"
           name="warpaffine-windows-win64-$(git describe --always).zip"
           mv -v ./warpaffine.zip "release/${name}"
-          echo "name=${name}" >> "$GITHUB_OUTPUT"
-          echo "path=release/${name}" >> "$GITHUB_OUTPUT"
+          #echo "name=${name}" >> "$GITHUB_OUTPUT"
+          #echo "path=release/${name}" >> "$GITHUB_OUTPUT"
+          echo "::set-output name=filename::name"
 
     # upload the build-results to artifacts-store
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
         name: Release
-        path: release
+        path: release/${{ steps.create_artifact.outputs.filename }}
