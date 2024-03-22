@@ -11,6 +11,8 @@ DISABLE:
   - SPELL # Comment to enable checks of spelling mistakes
 DISABLE_ERRORS_LINTERS:
   - MARKDOWN_MARKDOWN_LINK_CHECK # Make non-blocking due to network timeouts etc.
+DISABLE_LINTERS:
+  - REPOSITORY_TRIVY  # this linter seems currently broken, so we disable it here for now
 CPP_CPPLINT_ARGUMENTS: --verbose=2 --linelength=300 --filter=-whitespace/braces,-whitespace/indent,-whitespace/comments,-whitespace/newline,-build/c++11,-build/include_subdir,-build/namespaces,-build/include_order,-whitespace/end_of_line,-runtime/indentation_namespace,-runtime/references,-readability/namespace,-readability/nolint
 SHOW_ELAPSED_TIME: true
 FILEIO_REPORTER: false
