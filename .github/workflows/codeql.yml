@@ -18,6 +18,9 @@ on:
     branches: [ "main" ]
   schedule:
     - cron: '15 6 * * 5'
+  
+permissions:
+  contents: read
 
 jobs:
   analyze:
