@@ -232,18 +232,18 @@ void CziBrickReader2::CopySubblockIntoBrick(const libCZI::SubBlockInfo& subblock
     // one subblock per slice. We copy the bitmap to the correct location (and fill the not covered parts with zero).
     Utilities::CopyBitmapAtOffsetAndClearNonCoveredArea(
         {
-           subblock_info.logicalRect.x - rectangle.x,
-           subblock_info.logicalRect.y - rectangle.y,
-           bitmap->GetPixelType(),
-           bitmap_locker.ptrDataRoi,
-           bitmap_locker.stride,
-           static_cast<int>(bitmap->GetWidth()),
-           static_cast<int>(bitmap->GetHeight()),
-           static_cast<uint8_t*>(decode_info->brick_output_info->output_brick.data.get()) + static_cast<size_t>(z) * decode_info->brick_output_info->output_brick.info.stride_plane,
-           decode_info->brick_output_info->output_brick.info.stride_line,
-           static_cast<int>(decode_info->brick_output_info->output_brick.info.width),
-           static_cast<int>(decode_info->brick_output_info->output_brick.info.height)
-         });
+            subblock_info.logicalRect.x - rectangle.x,
+            subblock_info.logicalRect.y - rectangle.y,
+            bitmap->GetPixelType(),
+            bitmap_locker.ptrDataRoi,
+            bitmap_locker.stride,
+            static_cast<int>(bitmap->GetWidth()),
+            static_cast<int>(bitmap->GetHeight()),
+            static_cast<uint8_t*>(decode_info->brick_output_info->output_brick.data.get()) + static_cast<size_t>(z) * decode_info->brick_output_info->output_brick.info.stride_plane,
+            decode_info->brick_output_info->output_brick.info.stride_line,
+            static_cast<int>(decode_info->brick_output_info->output_brick.info.width),
+            static_cast<int>(decode_info->brick_output_info->output_brick.info.height)
+        });
 }
 
 bool CziBrickReader2::IsDone()

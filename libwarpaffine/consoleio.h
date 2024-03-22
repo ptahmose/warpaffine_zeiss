@@ -10,8 +10,8 @@
 #include <mutex>
 
 #if LIBWARPAFFINE_WIN32_ENVIRONMENT
- #define NOMINMAX
- #include <Windows.h>
+    #define NOMINMAX
+    #include <Windows.h>
 #endif
 
 enum class ConsoleColor : unsigned char

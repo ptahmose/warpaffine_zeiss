@@ -265,28 +265,28 @@ using namespace libCZI;
                     max_x{ numeric_limits<int>::min() },
                     max_y{ numeric_limits<int>::min() };
                 czi_reader->EnumSubset(
-                                  nullptr,
-                                  nullptr,
-                                  true,
-                                  [&](int index, const SubBlockInfo& info)->bool
-                                  {
-                                      int scene_index;
-                                      if (info.coordinate.TryGetPosition(DimensionIndex::S, &scene_index))
-                                      {
-                                          if (scene_index == scene_bounding_box.first && info.mIndex == m)
-                                          {
-                                              min_x = min(min_x, info.logicalRect.x);
-                                              min_y = min(min_y, info.logicalRect.y);
-                                              max_x = max(max_x, info.logicalRect.x + info.logicalRect.w);
-                                              max_y = max(max_y, info.logicalRect.y + info.logicalRect.h);
-                                          }
-                                      }
+                                    nullptr,
+                                    nullptr,
+                                    true,
+                                    [&](int index, const SubBlockInfo& info)->bool
+                                    {
+                                        int scene_index;
+                                        if (info.coordinate.TryGetPosition(DimensionIndex::S, &scene_index))
+                                        {
+                                            if (scene_index == scene_bounding_box.first && info.mIndex == m)
+                                            {
+                                                min_x = min(min_x, info.logicalRect.x);
+                                                min_y = min(min_y, info.logicalRect.y);
+                                                max_x = max(max_x, info.logicalRect.x + info.logicalRect.w);
+                                                max_y = max(max_y, info.logicalRect.y + info.logicalRect.h);
+                                            }
+                                        }
 
-                                      return true;
-                                  });
+                                        return true;
+                                    });
 
                 if (min_x == numeric_limits<int>::max() || min_y == numeric_limits<int>::max() ||
-                                  max_x == numeric_limits<int>::min() || max_y == numeric_limits<int>::min())
+                    max_x == numeric_limits<int>::min() || max_y == numeric_limits<int>::min())
                 {
                     continue;
                 }

@@ -23,7 +23,7 @@ void CalcResultHash::AddSlice(const std::shared_ptr<libCZI::IMemoryBlock>& memor
     string coordinate_string_representation = Utils::DimCoordinateToString(&coordinate);
     Utils::CalcMd5SumHash(coordinate_string_representation.c_str(), coordinate_string_representation.size(), hash_of_coordinate.data(), sizeof(hash_of_coordinate));
 
-   /*{
+    /*{
         std::lock_guard<std::mutex> guard(this->mutex_);
         FILE* fp = fopen("N:\\log.txt", "a");
         fprintf(fp, "%s: %s - %s\n", coordinate_string_representation.c_str(), PrintHash(hash_of_coordinate).c_str(), PrintHash(hash_of_data).c_str());

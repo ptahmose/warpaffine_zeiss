@@ -275,8 +275,8 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
         ->option_text("SOURCE_FILE")
         ->required();
     app.add_option("--source-stream-class", argument_source_stream_class,
-       "Specifies the stream-class used for reading the source CZI-file. If not specified, the default file-reader stream-class is used."
-       " Run with argument '--version' to get a list of available stream-classes.")
+        "Specifies the stream-class used for reading the source CZI-file. If not specified, the default file-reader stream-class is used."
+        " Run with argument '--version' to get a list of available stream-classes.")
         ->option_text("STREAMCLASS");
     app.add_option("--propbag-source-stream-creation", argument_source_stream_creation_propbag,
         "Specifies the property-bag used for creating the stream used for reading the source CZI-file. The data is given in JSON-notation.")

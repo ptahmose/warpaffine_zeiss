@@ -170,20 +170,17 @@ using namespace std;
 
 /*static*/Eigen::Matrix4d DeskewHelpers::GetTransformationMatrix_CoverglassTransform(const DeskewDocumentInfo& document_info, bool rotate_around_z_axis_by_90_degree)
 {
-    /*
-    The shearing matrix gives us something like:
+    // The shearing matrix gives us something like:
+    //
+    // z |
+    // |     xxxxxxxxxxx          z |
+    // |    xxxxxxxxxxx             |
+    // |   xxxxxxxxxxx              |  /y
+    // |  xxxxxxxxxxx               | /
+    // | xxxxxxxxxxx                |/
+    // |xxxxxxxxxxx                 -------> x
+    // --------------> y
 
-
-  z |
-    |     xxxxxxxxxxx          z |
-    |    xxxxxxxxxxx             |
-    |   xxxxxxxxxxx              |  /y
-    |  xxxxxxxxxxx               | /
-    | xxxxxxxxxxx                |/
-    |xxxxxxxxxxx                 -------> x
-    --------------> y
-
-    */
     const auto shearing_matrix = GetTransformationMatrix_Deskew(document_info);
 
     double factor_to_scale_z = (document_info.z_scaling / 2) / document_info.xy_scaling;

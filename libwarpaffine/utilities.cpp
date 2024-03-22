@@ -300,13 +300,13 @@ void Utilities::CopyBitmap(libCZI::PixelType pixel_type, const void* ptr_source,
     const void* ptrSource = static_cast<const char*>(info.srcPtr) + (std::max)(-info.yOffset, 0) * static_cast<size_t>(info.srcStride) + (std::max)(-info.xOffset, 0) * static_cast<size_t>(libCZI::Utils::GetBytesPerPixel(info.pixelType));
 
     Utilities::CopyBitmap(
-                       info.pixelType,
-                       ptrSource,
-                       info.srcStride,
-                       ptrDestination,
-                       info.dstStride,
-                       intersection.w,
-                       intersection.h);
+                        info.pixelType,
+                        ptrSource,
+                        info.srcStride,
+                        ptrDestination,
+                        info.dstStride,
+                        intersection.w,
+                        intersection.h);
 }
 
 /*static*/void Utilities::CopyBitmapAtOffsetAndClearNonCoveredArea(const CopyAtOffsetInfo& info)
@@ -325,13 +325,13 @@ void Utilities::CopyBitmap(libCZI::PixelType pixel_type, const void* ptr_source,
     void* ptrDestination = static_cast<char*>(info.dstPtr) + intersection.y * static_cast<size_t>(info.dstStride) + intersection.x * static_cast<size_t>(libCZI::Utils::GetBytesPerPixel(info.pixelType));
     const void* ptrSource = static_cast<const char*>(info.srcPtr) + (std::max)(-info.yOffset, 0) * static_cast<size_t>(info.srcStride) + (std::max)(-info.xOffset, 0) * static_cast<size_t>(libCZI::Utils::GetBytesPerPixel(info.pixelType));
     Utilities::CopyBitmap(
-                       info.pixelType,
-                       ptrSource,
-                       info.srcStride,
-                       ptrDestination,
-                       info.dstStride,
-                       intersection.w,
-                       intersection.h);
+                        info.pixelType,
+                        ptrSource,
+                        info.srcStride,
+                        ptrDestination,
+                        info.dstStride,
+                        intersection.w,
+                        intersection.h);
 
     // check for the frequent case that the destination bitmap is completely covered by the source bitmap,
     //  in which case we don't have to clear anything

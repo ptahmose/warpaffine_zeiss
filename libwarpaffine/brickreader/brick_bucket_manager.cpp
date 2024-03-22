@@ -117,18 +117,18 @@ BrickBucketManager::BrickResultOnSliceInfo::BrickResultOnSliceInfo(int t_coordin
             const libCZI::ScopedBitmapLocker bitmap_locker(bitmap);
             Utilities::CopyBitmapAtOffsetAndClearNonCoveredArea(
             {
-               iterator->x_position - x,
-               iterator->y_position - y,
-               bitmap->GetPixelType(),
-               bitmap_locker.ptrDataRoi,
-               bitmap_locker.stride,
-               static_cast<int>(bitmap->GetWidth()),
-               static_cast<int>(bitmap->GetHeight()),
-               static_cast<uint8_t*>(brick.data.get()) + static_cast<size_t>(z_coordinate) * brick.info.stride_plane,
-               brick.info.stride_line,
-               static_cast<int>(brick.info.width),
-               static_cast<int>(brick.info.height)
-             });
+                iterator->x_position - x,
+                iterator->y_position - y,
+                bitmap->GetPixelType(),
+                bitmap_locker.ptrDataRoi,
+                bitmap_locker.stride,
+                static_cast<int>(bitmap->GetWidth()),
+                static_cast<int>(bitmap->GetHeight()),
+                static_cast<uint8_t*>(brick.data.get()) + static_cast<size_t>(z_coordinate) * brick.info.stride_plane,
+                brick.info.stride_line,
+                static_cast<int>(brick.info.width),
+                static_cast<int>(brick.info.height)
+            });
         }
 
         if (immediately_release_source_memory)
