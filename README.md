@@ -19,7 +19,7 @@ The input data and the output data are expected/created with zstd-compression.
 Please check additional documentation [here](documentation/documentation.md).
 
 ## Credits to Third Party Components
-The authors and maintainers of warpaffine give a big shout-out to all the [helpers](./THIRD_PARTY_LICENSES.txt) that have been part in bringing this project to where it is today.
+The authors and maintainers of warpaffine give a big shout-out to all the [helpers](./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt) that have been part in bringing this project to where it is today.
 
 ## Guidelines
 [Code of Conduct](./CODE_OF_CONDUCT.md)  
