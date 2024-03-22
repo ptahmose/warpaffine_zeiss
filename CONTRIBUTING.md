@@ -18,7 +18,7 @@ Please revisit all previously created issues before creating a new issue.
 Choose from one of the provided templates and carefully fill out all required information.
 
 # Suggesting a Feature
-If you find yourself wishing for a feature or improvement that doesn't exist in CZICheck, you are probably not alone. There are bound to be others out there with similar needs. Many of the features that CZICheck has today have been added because our users saw the need. Open an issue on our issues list on GitHub which describes the feature you would like to see, why you need it, and how it should work.
+If you find yourself wishing for a feature or improvement that doesn't exist in warpaffine, you are probably not alone. There are bound to be others out there with similar needs. Many of the features that warpaffine has today have been added because our users saw the need. Open an issue on our issues list on GitHub which describes the feature you would like to see, why you need it, and how it should work.
 
 # Creating a PR
 We are always happy to receive code contributions from your side.  
