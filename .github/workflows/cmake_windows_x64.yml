@@ -77,7 +77,9 @@ jobs:
           ls -l "./build/warpaffine/${{env.BUILD_TYPE}}/"
           mkdir release
           cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.exe release/
+          shopt -s nullglob # don't fail if no files are found
           cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.dll release/
+          shopt -u nullglob
           cp ./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt release/
           name="warpaffine-windows-win64-$(git describe --always)"
           echo "name=${name}" >> "$GITHUB_OUTPUT"
