@@ -102,7 +102,6 @@ std::map<BrickCoordinate, std::uint32_t> CziBrickReaderLinearReading::GenerateRe
 }
 
 /*virtual*/void CziBrickReaderLinearReading::StartPumping(
-    //const std::function<void(const Brick&, const libCZI::CDimCoordinate& coordinate)>& deliver_brick_func)
     const std::function<void(const Brick&, const BrickCoordinateInfo&)>& deliver_brick_func)
 {
     const int numberOfReadingThreads = this->context_.GetCommandLineOptions().GetNumberOfReaderThreads();
