@@ -27,12 +27,12 @@ jobs:
         key: vcpkg-x64-windows-
         restore-keys: |
           vcpkg-x64-windows-
-    
+
     - name: Install dependencies
       id: install-ipp
       shell: bash
       run: |
-         # We get IPP from Nuget, this seems to be the easiest option on Windows (c.f. https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html#ipp).
+         # We get IPP from Nuget, this seems to be the easiest option on Windows (c.f. https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html#ipp)
          # For whatever reasons, running the installers did not work (they seem to bring up an UI and wait for input,
          # even when running them with the "/s"-option).
          nuget.exe install intelipp.static.win-x64 -OutputDirectory ./intel_ipp
@@ -55,7 +55,7 @@ jobs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DIPPROOT="${{ steps.install-ipp.outputs.IPPROOT }}" -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3=ON  -DLIBCZI_BUILD_CURL_BASED_STREAM=ON -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_LIBCURL=ON -DWARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON=ON -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake  -DVCPKG_TARGET_TRIPLET=x64-windows-static 
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DIPPROOT="${{steps.install-ipp.outputs.IPPROOT}}" -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3=ON  -DLIBCZI_BUILD_CURL_BASED_STREAM=ON -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_LIBCURL=ON -DWARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON=ON -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake  -DVCPKG_TARGET_TRIPLET=x64-windows-static
 
     - name: Build
       # Build your program with the given configuration
@@ -78,7 +78,7 @@ jobs:
           mkdir release
           cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.exe release/
           # check if there are any dlls to copy - if not, the copy command would fail
-          dll_files=$(find ./build/warpaffine/${{ env.BUILD_TYPE }} -maxdepth 1 -name '*.dll')
+          dll_files=$(find ./build/warpaffine/${{env.BUILD_TYPE}} -maxdepth 1 -name '*.dll')
           if [[ -n "$dll_files" ]]; then
             cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.dll release/
           fi
@@ -91,5 +91,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
-        name: ${{ steps.create_artifact.outputs.name }} # This is the name of the artifact that will be uploaded to GitHub, determined in the step above
-        path: ${{ steps.create_artifact.outputs.path }} # This is the path to the artifacts that will be uploaded to GitHub, determined in the step above
+        name: ${{steps.create_artifact.outputs.name}} # This is the name of the artifact that will be uploaded to GitHub, determined in the step above
+        path: ${{steps.create_artifact.outputs.path}} # This is the path to the artifacts that will be uploaded to GitHub, determined in the step above

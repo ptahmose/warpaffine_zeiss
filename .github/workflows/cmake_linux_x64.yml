@@ -68,5 +68,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
-        name: ${{ steps.create_artifact.outputs.name }} # This is the name of the artifact that will be uploaded to GitHub, determined in the step above
-        path: ${{ steps.create_artifact.outputs.path }} # This is the path to the artifacts that will be uploaded to GitHub, determined in the step above
+        name: ${{steps.create_artifact.outputs.name}} # This is the name of the artifact that will be uploaded to GitHub, determined in the step above
+        path: ${{steps.create_artifact.outputs.path}} # This is the path to the artifacts that will be uploaded to GitHub, determined in the step above
