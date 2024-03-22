@@ -77,9 +77,11 @@ jobs:
           ls -l "./build/warpaffine/${{env.BUILD_TYPE}}/"
           mkdir release
           cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.exe release/
-          shopt -s nullglob # don't fail if no files are found
-          cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.dll release/
-          shopt -u nullglob
+          # check if there are any dlls to copy - if not, the copy command would fail
+          dll_files=( ./build/warpaffine/${{env.BUILD_TYPE}}/*.dll )
+          if [ ${#dll_files[@]} -gt 0 ]; then
+            cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.dll release/
+          fi
           cp ./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt release/
           name="warpaffine-windows-win64-$(git describe --always)"
           echo "name=${name}" >> "$GITHUB_OUTPUT"
