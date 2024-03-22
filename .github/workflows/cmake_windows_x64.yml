@@ -78,8 +78,8 @@ jobs:
           mkdir release
           cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.exe release/
           # check if there are any dlls to copy - if not, the copy command would fail
-          dll_files=( ./build/warpaffine/${{env.BUILD_TYPE}}/*.dll )
-          if [ ${#dll_files[@]} -gt 0 ]; then
+          dll_files=$(find ./build/warpaffine/${{ env.BUILD_TYPE }} -maxdepth 1 -name '*.dll')
+          if [[ -n "$dll_files" ]]; then
             cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.dll release/
           fi
           cp ./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt release/
