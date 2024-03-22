@@ -24,7 +24,7 @@ using namespace std;
 CConsoleLog::CConsoleLog()
 #if LIBWARPAFFINE_WIN32_ENVIRONMENT
     : consoleHandle(INVALID_HANDLE_VALUE),
-      canUseVirtualTerminalSequences(false)
+        canUseVirtualTerminalSequences(false)
 #endif
 #if LIBWARPAFFINE_UNIX_ENVIRONMENT
     : isTerminalOutput(false)
