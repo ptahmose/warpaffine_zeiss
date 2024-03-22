@@ -2,9 +2,9 @@ name: CMake-Linux-x64
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -21,45 +21,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install dependencies
-      shell: bash
-      run: |
-         # download the key to system keyring
-         wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB| gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-         # add signed entry to apt sources and configure the APT client to use Intel repository:
-         echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
-         # Update packages list and repository index
-         sudo apt update
-         #
-         sudo apt install intel-oneapi-ipp-devel rapidjson-dev libssl-dev libeigen3-dev libcurl4-openssl-dev
-         #
-         vcpkg install --triplet x64-linux tbb
+      - name: Install dependencies
+        shell: bash
+        run: |
+          # download the key to system keyring
+          wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB| gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+          # add signed entry to apt sources and configure the APT client to use Intel repository:
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          # Update packages list and repository index
+          sudo apt update
+          #
+          sudo apt install intel-oneapi-ipp-devel rapidjson-dev libssl-dev libeigen3-dev libcurl4-openssl-dev
+          #
+          vcpkg install --triplet x64-linux tbb
 
-    - name: Configure CMake
-      shell: bash
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: |
-        source /opt/intel/oneapi/setvars.sh
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBCZI_BUILD_CURL_BASED_STREAM=ON -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_LIBCURL=OFF -DWARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON=ON -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3=ON -DCMAKE_TOOLCHAIN_FILE=/usr/local/share/vcpkg/scripts/buildsystems/vcpkg.cmake
+      - name: Configure CMake
+        shell: bash
+        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBCZI_BUILD_CURL_BASED_STREAM=ON -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_LIBCURL=OFF -DWARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON=ON -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3=ON -DCMAKE_TOOLCHAIN_FILE=/usr/local/share/vcpkg/scripts/buildsystems/vcpkg.cmake
 
-    - name: Build
-      # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} "-j$(nproc)"
+      - name: Build
+        # Build your program with the given configuration
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} "-j$(nproc)"
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      # Execute tests defined by the CMake configuration.
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C ${{env.BUILD_TYPE}}
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        # Execute tests defined by the CMake configuration.
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: ctest -C ${{env.BUILD_TYPE}}
 
-    # gather the binaries and put them into a folder
-    - name: Package
-      id: create_artifact
-      shell: bash
-      run: |
+        # gather the binaries and put them into a folder
+      - name: Package
+        id: create_artifact
+        shell: bash
+        run: |
           mkdir release
           cp ./build/warpaffine/warpaffine release/
           cp ./warpaffine/THIRD_PARTY_LICENSES_ARTIFACT_DISTRIBUTION.txt release/
@@ -67,9 +67,9 @@ jobs:
           echo "name=${name}" >> "$GITHUB_OUTPUT"
           echo "path=release" >> "$GITHUB_OUTPUT"
 
-    # upload the build-results to artifacts-store
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: ${{steps.create_artifact.outputs.name}} # This is the name of the artifact that will be uploaded to GitHub, determined in the step above
-        path: ${{steps.create_artifact.outputs.path}} # This is the path to the artifacts that will be uploaded to GitHub, determined in the step above
+      # upload the build-results to artifacts-store
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{steps.create_artifact.outputs.name}} # This is the name of the artifact that will be uploaded to GitHub, determined in the step above
+          path: ${{steps.create_artifact.outputs.path}} # This is the path to the artifacts that will be uploaded to GitHub, determined in the step above
