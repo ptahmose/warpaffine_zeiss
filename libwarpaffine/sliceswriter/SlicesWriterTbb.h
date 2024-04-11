@@ -41,8 +41,8 @@ public:
     void AddSlice(const AddSliceInfo& add_slice_info) override;
 
     void Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,
-               const libCZI::ScalingInfo* new_scaling_info,
-               const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook) override;
+                const libCZI::ScalingInfo* new_scaling_info,
+                const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook) override;
 
 private:
     void WriteWorker();
