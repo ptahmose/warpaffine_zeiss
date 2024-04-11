@@ -54,7 +54,7 @@ Utilities::GuardedBlock Utilities::AllocateWithGuardPageBehind(size_t size, size
     return GuardedBlock(buffer, static_cast<uint8_t*>(buffer) + offset);
 #endif
 #if WARPAFFINEUNITTESTS_UNIX_ENVIRONMENT
-    // In an Unix-environment, I currently don't know how to do the trickery with guard pages, we
+    // In a Unix-environment, I currently don't know how to do the trickery with guard pages, we
     //  therefore just do a "normal malloc-allocation".
     void* buffer = malloc(size);
     return GuardedBlock(buffer, buffer);
@@ -97,11 +97,11 @@ Utilities::GuardedBlock Utilities::AllocateWithGuardPageBefore(size_t size, size
         }
     }
 
-    // now we put together a pointer of the requested size, so that an access before it hits the guard-page
+    // now we put together a pointer of the requested size, so that access before it hits the guard-page
     return GuardedBlock(buffer, static_cast<uint8_t*>(buffer) + size_of_guard_area);
 #endif
 #if WARPAFFINEUNITTESTS_UNIX_ENVIRONMENT
-    // In an Unix-environment, I currently don't know how to do the trickery with guard pages, we
+    // In a Unix-environment, I currently don't know how to do the trickery with guard pages, we
     //  therefore just do a "normal malloc-allocation".
     void* buffer = malloc(size);
     return GuardedBlock(buffer, buffer);

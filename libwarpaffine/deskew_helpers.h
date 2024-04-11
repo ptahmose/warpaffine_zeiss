@@ -59,7 +59,7 @@ public:
     /// \tparam T   The generic type parameter, which must an enumeration of points (e.g. DoublePos3 or IntPos3).
     /// \param  collection_of_points    The collection of points.
     ///
-    /// \returns    The calculated axis-aligned-bounding-box containing all of the points.
+    /// \returns    The calculated axis-aligned-bounding-box containing all the points.
     template<class T>
     static inline DoubleCuboid CalculateAabbOfPoints(
         const T& collection_of_points)

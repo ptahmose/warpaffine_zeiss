@@ -25,5 +25,5 @@ public:
     void ResumeTask(SuspendHandle resume_handle) override;
 
     TaskArenaStatistics GetStatistics() override;
-    ~TaskArenaTbb() override;
+    ~TaskArenaTbb() override = default;
 };

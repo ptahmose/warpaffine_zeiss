@@ -67,7 +67,7 @@ std::shared_ptr<void> BrickAllocator::Allocate(MemoryType type, size_t size, boo
     {
         memory = shared_ptr<void>(
             malloc(size),
-            [=](void* vp)
+            [this, size, type](void* vp)
             {
                 if (vp != nullptr)
                 {

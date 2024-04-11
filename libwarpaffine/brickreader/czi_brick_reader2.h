@@ -73,7 +73,7 @@ private:
     /// \param          subblock_info   Information describing the subblock.
     /// \param          z               The z coordinate.
     /// \param [in,out] bitmap          If non-null, the bitmap.
-    /// \param          decode_info     If non-null, information describing the decode.
+    /// \param          decode_info     If non-null, information describing the decoding.
     /// \param          rectangle       The rectangle.
     void CopySubblockIntoBrick(const libCZI::SubBlockInfo& subblock_info, int z, libCZI::IBitmapData* bitmap, const BrickDecodeInfo* decode_info, const libCZI::IntRect& rectangle);
 };

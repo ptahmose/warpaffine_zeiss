@@ -337,7 +337,7 @@ void Utilities::CopyBitmap(libCZI::PixelType pixel_type, const void* ptr_source,
     //  in which case we don't have to clear anything
     if (intersection.w != info.dstWidth || intersection.h != info.dstHeight)
     {
-        // we now fill the "non-covered parts of the destination bitmap" (i.e. those parts which we not written to above)
+        // we now fill the "non-covered parts of the destination bitmap" (i.e. those parts which were not written to above)
 
         // the "top" part 
         Utilities::ClearBitmap(info.pixelType, info.dstPtr, info.dstStride, info.dstWidth, info.dstHeight, { 0, 0, info.dstWidth, intersection.y });

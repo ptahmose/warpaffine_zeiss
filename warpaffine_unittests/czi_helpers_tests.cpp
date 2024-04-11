@@ -44,22 +44,22 @@ public:
         this->ptrData = malloc(s);
     }
 
-    virtual ~CMemBitmapWrapper()
+    ~CMemBitmapWrapper() override
     {
         free(this->ptrData);
     }
 
-    virtual libCZI::PixelType GetPixelType() const
+    libCZI::PixelType GetPixelType() const override
     {
         return this->pixeltype;
     }
 
-    virtual libCZI::IntSize	GetSize() const
+    libCZI::IntSize	GetSize() const override
     {
         return libCZI::IntSize{ this->width, this->height };
     }
 
-    virtual libCZI::BitmapLockInfo	Lock()
+    libCZI::BitmapLockInfo Lock() override
     {
         libCZI::BitmapLockInfo bitmapLockInfo;
         bitmapLockInfo.ptrData = this->ptrData;
@@ -69,7 +69,7 @@ public:
         return bitmapLockInfo;
     }
 
-    virtual void Unlock()
+    void Unlock() override
     {
     }
 };

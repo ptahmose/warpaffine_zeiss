@@ -164,7 +164,7 @@ using namespace libCZI;
                     *brick_with_lowest_number_of_subblocks_missing);
 
                 // After we did a re-ordering, we don't have to do this again for the next iterations (where we have
-                //  ensured that the brick we chosen above gets completed as fast as possible).
+                //  ensured that the brick we have chosen above gets completed as fast as possible).
                 brick_coordinate_of_brick_it_was_reordered_for = brick_coordinate;
             }
         }

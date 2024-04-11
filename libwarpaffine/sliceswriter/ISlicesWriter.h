@@ -16,7 +16,7 @@
 class ICziSlicesWriter
 {
 public:
-    /// The information about "a slice (or subblock) to be added is gathered here.
+    /// The information about "a slice (or subblock) to be added" is gathered here.
     struct AddSliceInfo
     {
         /// The blob of data to be put into the subblock. The data is expected to be compressed (if applicable), no further processing

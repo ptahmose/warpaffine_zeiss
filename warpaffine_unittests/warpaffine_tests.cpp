@@ -342,7 +342,7 @@ static void TestLinearInterpolation2x2x2To1x1(IWarpAffine* warp_affine)
         *(pointer_voxel + i) = 1 + i;
     }
 
-    // then then sample one pixel in the middle, using the math from https://en.wikipedia.org/wiki/Trilinear_interpolation
+    // then sample one pixel in the middle, using the math from https://en.wikipedia.org/wiki/Trilinear_interpolation
     // this should give us the result 4.5
 
     Brick destination_brick = Utilities::CreateBrick(PixelType::Gray16, 1, 1, 1);

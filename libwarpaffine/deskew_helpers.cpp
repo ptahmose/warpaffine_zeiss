@@ -24,7 +24,7 @@ using namespace std;
     // what we do is:
     // - we transform all the 8 edges of the quad with the transformation
     // - then, we calculate the min and max of the coordinates
-    // - and, voila, there is our axis aligned bounding box
+    // - and, voilà, there is our axis aligned bounding box
     const Vector4d p1(0, 0, 0, 1);
     const Vector4d p2(width, 0, 0 , 1);
     const Vector4d p3(width, height, 0 , 1);

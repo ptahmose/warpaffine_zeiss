@@ -260,7 +260,7 @@ void CziBrickReaderLinearReading::BrickCompleted(const std::shared_ptr<IBrickRes
 
     this->context_.GetTaskArena()->AddTask(
         TaskType::BrickComposition,
-        [=]()->void
+        [this, brick_result]()->void
         {
             this->ComposeBrickTask(brick_result);
             --this->pending_tasks_count_;

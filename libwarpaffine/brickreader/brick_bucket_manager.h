@@ -41,7 +41,7 @@ public:
     /// soon as possible, i.e. immediately after it was copied into the destination brick.
     /// Releasing the memory this way may result in a lower memory-footprint. Otherwise, it will
     /// be released when this object is destroyed. immediately_release_source_memory= true also
-    /// means that the operation only works once. The specified parameters describing the output-
+    /// means that the operation only works once. The specified parameters describing the output
     /// brick are more or less for debugging purposes, meaning that one specifies the expected
     /// output, and if this deviates from the internal data, then this method is throwing an
     /// exception. Not conversion or something in this direction is actually implemented.

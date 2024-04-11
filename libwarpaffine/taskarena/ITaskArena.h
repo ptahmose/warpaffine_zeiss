@@ -46,7 +46,7 @@ public:
 
     /// This allows to pause (or suspend) a task. This method **must** be called from within a task,
     /// and the way this works is:
-    /// - A functor is to be provided, which will be called passing in a "suspend handle". If will be called while executing this method  
+    /// - A functor is to be provided, which will be called passing in a "suspend handle". It will be called while executing this method  
     ///    (and it will be the last operation which takes place in this task's execution).
     /// - This "suspend handle" is an opaque object to the client. The functor needs to store this handle (for later use in order to resume the task). 
     /// - In order to resume the task, the 'ResumeTask' needs to be called at some later point in time. Obviously,  

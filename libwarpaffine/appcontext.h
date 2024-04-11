@@ -27,7 +27,7 @@ public:
 
     /// Initializes this object and parses the command line. If the command line is invalid, this
     /// method will throw an exception. If this is the case, all error-reporting is already done
-    /// and the application should exit immediately. If there is nothing to do any more (e.g. if the
+    /// and the application should exit immediately. If there is nothing to do anymore (e.g. if the
     /// application was invoked with the '--help' argument), this method will return false. In this case,
     /// the application should exit immediately, but not in error state.
     ///

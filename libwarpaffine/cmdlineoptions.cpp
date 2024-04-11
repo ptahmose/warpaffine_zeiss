@@ -118,14 +118,14 @@ private:
                 break;
             }
 
-            // '\n' before a word means "insert a linebreak", and "\N' means "insert a linebreak and one more empty line"
+            // '\n' before a word means "insert a linebreak", and '\N' means "insert a linebreak and one more empty line"
             if (word.size() > 2 && word[0] == '\\' && (word[1] == 'n' || word[1] == 'N'))
             {
                 line.erase(line.size() - 1);	// remove trailing space
                 vec.push_back(line);
                 if (word[1] == 'N')
                 {
-                    vec.push_back("");
+                    vec.emplace_back("");
                 }
 
                 line.clear();

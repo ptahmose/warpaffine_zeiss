@@ -51,17 +51,17 @@ public:
         std::map<BrickCoordinate, std::uint32_t> number_of_slices_per_brick;
     };
 
-    /// The purpose of this function is to determine a order (in which to read the subblocks) which
+    /// The purpose of this function is to determine an order (in which to read the subblocks) which
     /// ensures that the number of "subblocks-in-flight" has a certain limit. With "subblocks-in-flight"
     /// we refer to "unfinished" bricks, i.e. bricks which are not complete because some of its parts
-    /// are not read read from disk.
+    /// are not read from disk.
     /// The currently implemented algorithm does not try to give a perfect result, where perfect would mean:
     /// minimize the number of seeks we have to do while obeying the given limit, or: read as much as possible
     /// in a consecutive way. What we do is something like:
     /// * We sort the subblocks by the position in the file  
     /// * Then, we simulate how much "subblocks-in-flight" we have when using this order  
     /// * If we get beyond the limit specified, we re-order the following subblocks to-be-read so that a brick is finished  
-    ///   (and we finish the brick which has least missing subblocks first).
+    ///   (and we finish the brick which has the least missing subblocks first).
     /// * continue like so until all subblocks are being read  
     /// This means that the specified limit is not exactly guaranteed, it just gives the threshold when we start
     /// counter-measures (i.e. change the order). However, note that the max amount of subblocks-in-flight is

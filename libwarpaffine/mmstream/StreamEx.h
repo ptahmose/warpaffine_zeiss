@@ -13,7 +13,7 @@
 /// additional stream class specific parameters).
 /// This function will either return a valid stream object, or throw an exception.
 ///
-/// \param  filename        Filename ((can be an URL or similar, depending on the stream class) of the file.
+/// \param  filename        Filename ((can be a URL or similar, depending on the stream class) of the file.
 /// \param  stream_class    The stream class, if empty, the stock file stream object is used.
 /// \param  property_bag    The property bag.
 ///

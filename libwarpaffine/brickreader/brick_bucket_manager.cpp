@@ -61,7 +61,7 @@ bool BrickBucketManager::AddToBrick(BucketData* bucket_data, int x, int y, int z
     bucket_data->items->at(index_to_use) = PlaneAndIndexZ{ std::move(bitmap), x, y, z_coordinate };
 
     // This is now important - *after* we placed the data, we increment the "number_of_planes_ready"-counter (atomically),
-    //  and only if we did the last increment (ie. if the number here is the expected number), then we report that we are
+    //  and only if we did the last increment (i.e. if the number here is the expected number), then we report that we are
     //  done.
     return ++bucket_data->number_of_planes_ready == static_cast<uint32_t>(bucket_data->items->size());
 }
@@ -98,7 +98,7 @@ BrickBucketManager::BrickResultOnSliceInfo::BrickResultOnSliceInfo(int t_coordin
     brick.info.pixelType = pixel_type;
     brick.info.width = width;
     brick.info.height = height;
-    brick.info.depth = depth;// this->bucket_data_->items->size();
+    brick.info.depth = depth;
     brick.info.stride_line = libCZI::Utils::GetBytesPerPixel(brick.info.pixelType) * brick.info.width;
     brick.info.stride_plane = brick.info.stride_line * brick.info.height;
     brick.data = allocator.Allocate(BrickAllocator::MemoryType::SourceBrick, static_cast<size_t>(brick.info.stride_plane) * brick.info.depth);

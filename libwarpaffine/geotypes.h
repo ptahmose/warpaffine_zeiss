@@ -26,7 +26,7 @@ struct DoublePos3
     double    z_position{ 0 };  ///< The z-coordinate.
 };
 
-/// This structure gives the extent of of cuboid (with integer values).
+/// This structure gives the extent of a cuboid (with integer values).
 struct IntSize3
 {
     std::uint32_t width{ 0 };   ///< The length in x-direction (width).

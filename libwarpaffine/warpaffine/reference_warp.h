@@ -30,7 +30,7 @@ public:
 private:
     void DoNearestNeighbor();
     void DoLinearInterpolation();
-    void ThrowUnsupportedPixelType();
+    [[noreturn]] void ThrowUnsupportedPixelType();
 
     static IntPos3 ToNearestNeighbor(const Eigen::Vector4d& position);
 

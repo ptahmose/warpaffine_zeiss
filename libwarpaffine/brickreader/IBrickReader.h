@@ -21,7 +21,7 @@ struct BrickReaderStatistics
     std::uint64_t uncompressed_planes_in_flight;    ///< Number of (uncompressed) planes in flight. If this value is numeric_limits<uint64_t>::max() it means - this value is not applicable for the specific brick-reader.
 };
 
-/// Information about the "coordinates" of the a brick - this includes the "document-dimensions" (in coordinate) like T, C, the
+/// Information about the "coordinates" of a brick - this includes the "document-dimensions" (in coordinate) like T, C, the
 /// mosaic-index and the x-y-position of the top-left point of the brick in the document's pixel-coordinate-system.
 struct BrickCoordinateInfo
 {

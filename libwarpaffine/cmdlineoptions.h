@@ -47,7 +47,7 @@ public:
     {
         OK,     ///< An enum constant representing the result "arguments successfully parsed, operation can start".
         Exit,   ///< An enum constant representing the result "operation complete, the program should now be terminated, e.g. the synopsis was printed".
-        Error   ///< An enum constant representing the result "the was an error parsing the command line arguments, program should terminate".
+        Error   ///< An enum constant representing the result "there was an error parsing the command line arguments, program should terminate".
     };
 
     /// Parse the command line arguments. The arguments are expected to have

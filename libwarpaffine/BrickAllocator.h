@@ -57,7 +57,7 @@ public:
 
     /// Sets the high watermark - if the amount of allocated memory is crossing this number, then
     /// the high-watermark-crossed-callback will be raised.
-    /// \param  high_water_mark The high water mark (in bytes).
+    /// \param  high_water_mark The high watermark (in bytes).
     void SetHighWatermark(std::uint64_t high_water_mark)
     {
         this->high_water_mark_ = CastToIn64ThrowIfTooLarge(high_water_mark);

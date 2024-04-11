@@ -181,7 +181,7 @@ void CziBrickReader::ReadBrick()
 
 /// Fill the specified brick with the content from the CZI-source-file.
 ///
-/// \param          coordinate  The brick-coordinate. We require a a valid C-coordinate, and a t-coordinate is optional. 
+/// \param          coordinate  The brick-coordinate. We require an valid C-coordinate, and a t-coordinate is optional. 
 /// \param          rectangle   The region of the brick in the pixel-coordinate system.
 /// \param [in,out] brick       The brick to be filled.
 void CziBrickReader::FillBrick(const libCZI::CDimCoordinate& coordinate, const libCZI::IntRect& rectangle, Brick& brick)

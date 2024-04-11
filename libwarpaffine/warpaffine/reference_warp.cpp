@@ -75,7 +75,7 @@ void ReferenceWarp::DoLinearInterpolation()
     }
 }
 
-void ReferenceWarp::ThrowUnsupportedPixelType()
+[[noreturn]] void ReferenceWarp::ThrowUnsupportedPixelType()
 {
     ostringstream string_stream;
     string_stream << "An unsupported pixeltype (" << static_cast<int>(this->source_brick_.info.pixelType) << ", " << Utils::PixelTypeToInformalString(this->source_brick_.info.pixelType) << ") was encountered.";

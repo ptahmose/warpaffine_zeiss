@@ -15,10 +15,6 @@ TaskArenaTbb::TaskArenaTbb(AppContext& context)
     this->arena.initialize();
 }
 
-TaskArenaTbb::~TaskArenaTbb()
-{
-}
-
 void TaskArenaTbb::AddTask(TaskType task_type, const std::function<void()>& task)
 {
     ++this->queue_length;

@@ -63,13 +63,13 @@ public:
         int dstHeight;                      ///< The height of the destination bitmap in pixels.
     };
 
-    /// Copies the a source bitmap into a destination bitmap at a specific position. If the source bitmap
+    /// Copies the source bitmap into a destination bitmap at a specific position. If the source bitmap
     /// is extending over the destination bitmap, then only the overlapping part is copied.
     /// 
     /// \param  info The information describing the operation.
     static void CopyBitmapAtOffset(const CopyAtOffsetInfo& info);
 
-    /// Copies the a source bitmap into a destination bitmap at a specific position. If the source bitmap
+    /// Copies the source bitmap into a destination bitmap at a specific position. If the source bitmap
     /// is extending over the destination bitmap, then only the overlapping part is copied.
     /// The part of the destination bitmap to which we did not copy the source bitmap
     /// will be cleared (filled with zero).
@@ -78,7 +78,7 @@ public:
     static void CopyBitmapAtOffsetAndClearNonCoveredArea(const CopyAtOffsetInfo& info);
 
     /// Fills the specified region in the specified bitmap with zero. The region may extend outside
-    /// of the bitmap, operation will be clipped.
+    /// the bitmap, operation will be clipped.
     ///
     /// \param          pixel_type         The pixel type.
     /// \param          ptr                The pointer to the bitmap.

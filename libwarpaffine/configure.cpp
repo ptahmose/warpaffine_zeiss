@@ -37,7 +37,7 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
 {
     // determine the size of a source brick
 
-    // 1st step - we determine the max. sizes of a the source bricks, the destination brick (and
+    // 1st step - we determine the max. sizes of the source bricks, the destination brick (and
     //  also tiled destination brick)
     const auto memory_characteristics = CalculateMemoryCharacteristics(deskew_document_info, do_warp);
 
@@ -100,7 +100,7 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
     //  _SC_PHYS_PAGES gives us the number of pages of physical memory, with the limitation that there
     //  is no guarantee that the memory is actually available. There is also _SC_AVPHYS_PAGES, which
     //  gives the number of pages we can use "without hindering any other processes" (which is not
-    //  available on MacOS it seems, btw). However, for our purposes the former parameter seems
+    //  available on macOS it seems, btw). However, for our purposes the former parameter seems
     //  best suited.
     const uint64_t page_number = sysconf(_SC_PHYS_PAGES);
 
