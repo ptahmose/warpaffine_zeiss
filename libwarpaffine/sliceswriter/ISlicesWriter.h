@@ -24,7 +24,7 @@ public:
         std::shared_ptr<libCZI::IMemoryBlock> subblock_raw_data;
 
         /// The compression mode.
-        libCZI::CompressionMode compression_mode{ libCZI::CompressionMode::Invalid};
+        libCZI::CompressionMode compression_mode{ libCZI::CompressionMode::Invalid };
 
         /// The pixeltype.
         libCZI::PixelType pixeltype{ libCZI::PixelType::Invalid };
@@ -63,10 +63,13 @@ public:
     /// Closes the output CZI-files. The specified metadata object (of the source document) is used
     /// to update the metadata of the output CZI-file.
     ///
-    /// \param  source_metadata  The metadata object of the source document.
-    /// \param  new_scaling_info If non-null, this scaling information is set with the output document.
+    /// \param  source_metadata     The metadata object of the source document.
+    /// \param  new_scaling_info    If non-null, this scaling information is set with the output document.
+    /// \param  tweak_metadata_hook If non-null, this function will be called passing in the XML-metadata which
+    ///                             is about to be written to the output file, allowing for modifications of it. 
     virtual void Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,
-                        const libCZI::ScalingInfo* new_scaling_info) = 0;
+                        const libCZI::ScalingInfo* new_scaling_info,
+                        const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook) = 0;
 
     virtual ~ICziSlicesWriter() = default;
 

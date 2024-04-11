@@ -107,7 +107,8 @@ void CziSlicesWriterTbb::WriteWorker()
 }
 
 void CziSlicesWriterTbb::Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,
-                                const libCZI::ScalingInfo* new_scaling_info)
+                                const libCZI::ScalingInfo* new_scaling_info,
+                                const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook)
 {
     SubBlockWriteInfo2 sub_block_write_info;
     this->queue_.push(sub_block_write_info);
@@ -129,14 +130,19 @@ void CziSlicesWriterTbb::Close(const std::shared_ptr<libCZI::ICziMetadata>& sour
 
         // now we could add additional information
         GeneralDocumentInfo docInfo;
-        docInfo.SetName(L"WarpAffine2");
-        docInfo.SetTitle(L"WarpAffine2 generated");
+        docInfo.SetName(L"WarpAffine");
+        docInfo.SetTitle(L"WarpAffine generated");
         docInfo.SetComment(L"");
         MetadataUtils::WriteGeneralDocumentInfo(metadata_builder.get(), docInfo);
 
         if (new_scaling_info != nullptr)
         {
             MetadataUtils::WriteScalingInfo(metadata_builder.get(), *new_scaling_info);
+        }
+
+        if (tweak_metadata_hook)
+        {
+            tweak_metadata_hook(metadata_builder->GetRootNode().get());
         }
 
         WriteMetadataInfo metadata_info;
@@ -155,16 +161,19 @@ void CziSlicesWriterTbb::Close(const std::shared_ptr<libCZI::ICziMetadata>& sour
         const auto automatically_generated_metadata = this->writer_->GetPreparedMetadata(PrepareMetadataInfo());
         this->CopyMetadata(automatically_generated_metadata->GetRootNode().get(), metadata_builder_from_source->GetRootNode().get());
 
-        // we want to remove the field Information/Image/Dimensions/Z/ZAxisShear - since our result is not sheared anymore
-        this->RemoveShearingMarking(metadata_builder_from_source->GetRootNode().get());
-
         GeneralDocumentInfo docInfo;
-        docInfo.SetComment(L"WarpAffine2 generated");
+        docInfo.SetComment(L"WarpAffine generated");
         MetadataUtils::WriteGeneralDocumentInfo(metadata_builder_from_source.get(), docInfo);
 
         if (new_scaling_info != nullptr)
         {
             MetadataUtils::WriteScalingInfo(metadata_builder_from_source.get(), *new_scaling_info);
+        }
+
+        // allow the caller to tweak the metadata before it is written out
+        if (tweak_metadata_hook)
+        {
+            tweak_metadata_hook(metadata_builder_from_source->GetRootNode().get());
         }
 
         WriteMetadataInfo metadata_info;
@@ -206,14 +215,5 @@ void CziSlicesWriterTbb::CopyMetadata(libCZI::IXmlNodeRead* rootSource, libCZI::
                 rootDestination->GetOrCreateChildNode(path)->SetValue(value);
             }
         }
-    }
-}
-
-void CziSlicesWriterTbb::RemoveShearingMarking(libCZI::IXmlNodeRw* root_node)
-{
-    auto dimensions_z_node = root_node->GetChildNode("Metadata/Information/Image/Dimensions/Z");
-    if (dimensions_z_node)
-    {
-        dimensions_z_node->RemoveChild("ZAxisShear");
     }
 }

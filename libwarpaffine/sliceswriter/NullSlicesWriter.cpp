@@ -17,6 +17,6 @@ void NullSlicesWriter::AddSlice(const AddSliceInfo& add_slice_info)
 {
 }
 
-void NullSlicesWriter::Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata, const libCZI::ScalingInfo* new_scaling_info)
+void NullSlicesWriter::Close(const std::shared_ptr<libCZI::ICziMetadata>&, const libCZI::ScalingInfo*, const std::function<void(libCZI::IXmlNodeRw*)>&)
 {
 }

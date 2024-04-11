@@ -432,6 +432,31 @@ static void WaitUntilDone(AppContext& app_context, DoWarp& do_warp)
     }
 }
 
+/// This function is used to modify the metadata of the output-document, depending on the operation-type.
+///
+/// \param [in,out] root_node      The root node of the CZI-document's XML-metadata.
+/// \param          operation_type Type of the operation.
+static void TweakMetadata(libCZI::IXmlNodeRw* root_node, OperationType operation_type)
+{
+    // here we tweak the metadata (specific to LLS-documents), depending on the operation-type
+    auto zaxis_shear_node = root_node->GetChildNode("Metadata/Information/Image/Dimensions/Z/ZAxisShear");
+    if (zaxis_shear_node)
+    {
+        switch (operation_type)
+        {
+        case OperationType::Deskew:
+            zaxis_shear_node->SetValue("Shift60");
+            break;
+        case OperationType::CoverGlassTransformAndXYRotated:
+        case OperationType::CoverGlassTransform:
+            zaxis_shear_node->SetValue("None");
+            break;
+        case OperationType::Identity:
+            break;
+        }
+    }
+}
+
 int libmain(int argc, char** _argv)
 {
 #if LIBWARPAFFINE_INTELPERFORMANCEPRIMITIVES_AVAILABLE
@@ -508,29 +533,35 @@ int libmain(int argc, char** _argv)
         doWarp.DoOperation();
         WaitUntilDone(app_context, doWarp);
 
-        switch (app_context.GetCommandLineOptions().GetTypeOfOperation())
+        switch (const auto type_of_operation = app_context.GetCommandLineOptions().GetTypeOfOperation())
         {
         case OperationType::Deskew:
         case OperationType::CoverGlassTransform:
         case OperationType::CoverGlassTransformAndXYRotated:
             // for those operations the transformation is constructed so that the scaling is isotrophic, so
-            // we know that the scaling in x,y,z is the the same (and as the x-y-scaling was in the source)
+            // we know that the scaling in x,y,z is the same (and as the x-y-scaling was in the source)
         {
             ScalingInfo scaling_info;
             scaling_info.scaleX = scaling_info.scaleY = scaling_info.scaleZ = document_info.xy_scaling;
-            writer->Close(get<0>(reader_and_stream)->ReadMetadataSegment()->CreateMetaFromMetadataSegment(), &scaling_info);
+            writer->Close(
+                get<0>(reader_and_stream)->ReadMetadataSegment()->CreateMetaFromMetadataSegment(),
+                &scaling_info,
+                [type_of_operation](libCZI::IXmlNodeRw* root_node)->void {TweakMetadata(root_node, type_of_operation); });
             break;
         }
         default:
             // otherwise, we do not change the scaling
-            writer->Close(get<0>(reader_and_stream)->ReadMetadataSegment()->CreateMetaFromMetadataSegment(), nullptr);
+            writer->Close(
+                get<0>(reader_and_stream)->ReadMetadataSegment()->CreateMetaFromMetadataSegment(),
+                nullptr,
+                [type_of_operation](libCZI::IXmlNodeRw* root_node)->void {TweakMetadata(root_node, type_of_operation); });
             break;
         }
 
         array<uint8_t, 16> hash_code;
         if (doWarp.TryGetHash(&hash_code))
         {
-            // here the strategy is - if the hash was requested on the command-line, then it will be printed here, independent from the verbosity-setting
+            // here the strategy is - if the hash was requested on the command-line, then it will be printed here, independently of the verbosity-setting
             ostringstream ss;
             ss << endl << "hash of result: " << Utilities::HashToString(hash_code);
             app_context.GetLog()->WriteLineStdOut(ss.str());

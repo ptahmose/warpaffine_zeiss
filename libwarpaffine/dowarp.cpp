@@ -164,7 +164,7 @@ DoWarp::DoWarp(
     // Note: 
     // We only deal with the width/height/depth of the output-volume, not its "edge-point"; in other words,
     // we assume that the output-volume is at (0,0,0). This is currently ensure by the preparation of the transformation
-    // matrix, but we should extent this in order to deal with "edge point not at the origin".
+    // matrix, but we should extend this in order to deal with "edge point not at the origin".
     Eigen::Vector3d edge_point;
     Eigen::Vector3d extent;
     DeskewHelpers::CalculateAxisAlignedBoundingBox(document_info.width, document_info.height, document_info.depth, transformation_matrix, edge_point, extent);
