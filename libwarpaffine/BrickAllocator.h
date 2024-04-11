@@ -88,8 +88,8 @@ public:
 
     void GetState(std::array<std::uint64_t, Count_of_MemoryTypes>& allocation_state);
 private:
-    void MemoryFreed(size_t size) { this->MemoryChange(-(std::int64_t)size); }
-    void MemoryAllocated(size_t size) { this->MemoryChange((std::int64_t)size); }
+    void MemoryFreed(size_t size) { this->MemoryChange(-static_cast<std::int64_t>(size)); }
+    void MemoryAllocated(size_t size) { this->MemoryChange(static_cast<std::int64_t>(size)); }
     void MemoryChange(std::int64_t change);
     void SignalHighwaterMarkCrossed(bool over_highwater_mark);
     std::int64_t GetTotalAllocatedMemory();

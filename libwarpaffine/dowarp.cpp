@@ -168,15 +168,15 @@ DoWarp::DoWarp(
     Eigen::Vector3d edge_point;
     Eigen::Vector3d extent;
     DeskewHelpers::CalculateAxisAlignedBoundingBox(document_info.width, document_info.height, document_info.depth, transformation_matrix, edge_point, extent);
-    this->output_width_ = (uint32_t)round(extent(0));
-    this->output_height_ = (uint32_t)round(extent(1));
-    this->output_depth_ = (uint32_t)round(extent(2));
+    this->output_width_ = static_cast<uint32_t>(round(extent(0)));
+    this->output_height_ = static_cast<uint32_t>(round(extent(1)));
+    this->output_depth_ = static_cast<uint32_t>(round(extent(2)));
 
     this->total_number_of_subblocks_to_output = this->output_brick_info_repository_.GetTotalNumberOfSubblocksToOutput() * number_of_3dplanes_to_process;
 
     if (context.GetCommandLineOptions().GetDoCalculateHashOfOutputData())
     {
-        this->calculate_result_hash_ = unique_ptr<CalcResultHash>(new CalcResultHash());
+        this->calculate_result_hash_ = std::make_unique<CalcResultHash>();
     }
 
     this->context_.GetAllocator().AddDestinationBrickMemoryReleasedCallback(

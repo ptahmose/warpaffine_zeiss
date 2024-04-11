@@ -38,15 +38,15 @@ CConsoleLog::CConsoleLog()
     if (stdoutFile != -2)
     {
         intptr_t osfhandle = _get_osfhandle(stdoutFile);
-        if ((HANDLE)osfhandle != INVALID_HANDLE_VALUE)
+        if (reinterpret_cast<HANDLE>(osfhandle) != INVALID_HANDLE_VALUE)
         {
-            DWORD dw = GetFileType((HANDLE)osfhandle);
+            DWORD dw = GetFileType(reinterpret_cast<HANDLE>(osfhandle));
             if (dw == FILE_TYPE_CHAR)
             {
                 CONSOLE_SCREEN_BUFFER_INFO screenBufferInfo;
-                GetConsoleScreenBufferInfo((HANDLE)osfhandle, &screenBufferInfo);
+                GetConsoleScreenBufferInfo(reinterpret_cast<HANDLE>(osfhandle), &screenBufferInfo);
                 this->defaultConsoleColor = screenBufferInfo.wAttributes;
-                this->consoleHandle = (HANDLE)osfhandle;
+                this->consoleHandle = reinterpret_cast<HANDLE>(osfhandle);
                 DWORD mode;
                 BOOL B = GetConsoleMode(this->consoleHandle, &mode);
                 if (B && (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0)

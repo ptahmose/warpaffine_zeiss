@@ -35,7 +35,7 @@ public:
     void MoveCursorUpAndPrintToStdout(const WarpStatistics& statistics);
 private:
     static void AddSpaces(std::ostringstream& stream, size_t number_of_spaces_to_add);
-    static void AddToStreamFormatToFillColumn(std::ostringstream& stream, const std::string text, size_t length_of_field);
+    static void AddToStreamFormatToFillColumn(std::ostringstream& stream, const std::string& text, size_t length_of_field);
     void AddColumnHeaderLine(std::ostringstream& stream);
     [[nodiscard]] int GetNumberOfLinesOfStatisticsText() const
     {

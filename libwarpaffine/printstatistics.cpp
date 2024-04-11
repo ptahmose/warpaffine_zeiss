@@ -287,7 +287,7 @@ void PrintStatistics::PrintToStdout(const WarpStatistics& statistics)
     this->context_.GetLog()->WriteStdOut(ss.str());
 }
 
-/*static*/void PrintStatistics::AddToStreamFormatToFillColumn(std::ostringstream& stream, const std::string text, size_t length_of_field)
+/*static*/void PrintStatistics::AddToStreamFormatToFillColumn(std::ostringstream& stream, const std::string& text, size_t length_of_field)
 {
     stream << left << setw(static_cast<streamsize>(length_of_field)) << text;
 }

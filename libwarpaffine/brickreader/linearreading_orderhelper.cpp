@@ -16,7 +16,7 @@ using namespace libCZI;
     document_info.statistics = subblock_repository->GetStatistics();
     int z_count;
     document_info.statistics.dimBounds.TryGetInterval(DimensionIndex::Z, nullptr, &z_count);
-    document_info.no_of_z = (uint32_t)z_count;
+    document_info.no_of_z = static_cast<uint32_t>(z_count);
     return document_info;
 }
 

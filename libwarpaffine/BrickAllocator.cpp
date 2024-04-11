@@ -44,9 +44,6 @@ bool BrickAllocator::RemoveHighWatermarkCrossedCallback(int handle)
     if (this->high_water_mark_crossed_functors_.erase(handle) != 1)
     {
         return false;
-        ostringstream error_text;
-        error_text << "handle " << handle << " not found.";
-        throw logic_error(error_text.str());
     }
 
     return true;
