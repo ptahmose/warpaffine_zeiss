@@ -6,7 +6,8 @@ set(WARPAFFINE_SRCFILES
 "inc_libwarpaffine.h"
 "main.cpp" 
 "warpaffine-longpaths.manifest" # the manifest is needed to allow long paths on windows, see https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=cmd
-                                # CMake will merge the manifest with a linker generated one (and ignore it on non-windows platforms)
+                                # CMake will merge the manifest with a linker generated one (and ignore it on non-Windows platforms)
+"warpaffine.rc"                 # the rc file (containing version information, only relevant for Windows))
 )
 
 add_executable(warpaffine ${WARPAFFINE_SRCFILES}  $<TARGET_OBJECTS:libwarpaffine>)
@@ -50,6 +51,13 @@ endif()
 configure_file (
   "${CMAKE_CURRENT_SOURCE_DIR}/WarpAffine_Config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/WarpAffine_Config.h"
+  )
+
+set(warpaffine_PROJECT_DESCRIPTION ${CMAKE_PROJECT_DESCRIPTION})  # the string given for the project description in the main CMakeLists.txt
+
+configure_file (
+  "${CMAKE_CURRENT_SOURCE_DIR}/resource_data.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/resource_data.h"
   )
 
 # On Windows, we want to copy the tbb-runtime to the destination folder. There is no
