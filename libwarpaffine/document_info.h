@@ -12,7 +12,7 @@
 #include "inc_libCZI.h"
 
 /// This struct is used to uniquely identify a brick (within the document). A brick here is defined
-/// as a stack of subblock ("stacked" in Z), and we assume that all subblocks identified with this
+/// as a stack of subblocks ("stacked" in Z), and we assume that all subblocks identified with this
 /// structure are at the same x-y-position (in pixel-coordinate-system) and have same extent.
 /// Note: In a well-formed CZI, the m-index is unique within a scene. However - what complicates matters
 /// is that an s-index may or may not be present.
@@ -31,7 +31,7 @@ struct BrickInPlaneIdentifier
     {
         if (this->IsMIndexValid() && this->IsSIndexValid())
         {
-            // s has highest precedence
+            // s has the highest precedence
             return this->s_index < other.s_index || (this->s_index == other.s_index && this->m_index < other.m_index);
         }
         else if (this->IsMIndexValid() && !this->IsSIndexValid())

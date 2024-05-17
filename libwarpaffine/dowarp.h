@@ -72,7 +72,7 @@ class DoWarp
             std::vector<TilingRectAndMandSceneIndex> tiling;
         };
     private:
-        std::map<BrickInPlaneIdentifier, DestinationBrickInfo> map_brickid_destinatiobrickinfo_;
+        std::map<BrickInPlaneIdentifier, DestinationBrickInfo> map_brickid_destinationbrickinfo_;
         std::uint32_t number_of_subblocks_to_output_{ 0 };
     public:
         OutputBrickInfoRepository(const AppContext& context, const DeskewDocumentInfo& document_info, const Eigen::Matrix4d& transformation_matrix);
@@ -158,7 +158,7 @@ public:
 
     void WaitUntilDone();
 
-    bool TryGetHash(std::array<uint8_t, 16>* hash_code);
+    bool TryGetHash(std::array<uint8_t, 16>* hash_code) const;
 private:
     void InputBrick(const Brick& brick, const BrickCoordinateInfo& coordinate_info);
 private:

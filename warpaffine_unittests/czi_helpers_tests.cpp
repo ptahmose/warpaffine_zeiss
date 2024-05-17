@@ -162,7 +162,7 @@ TEST(Czi_Helpers, GetSubblocksForBrickNoMindexTest)
     reader->Open(inputStream);
 
     auto brick_coordinate = CDimCoordinate::Parse("C0");
-    auto map_z_subblocks = CziHelpers::GetSubblocksForBrick(reader.get(), brick_coordinate, TileIdentifier::GetForNoMIndexAndNoSceneIndex() /*numeric_limits<int>::min()*/);
+    auto map_z_subblocks = CziHelpers::GetSubblocksForBrick(reader.get(), brick_coordinate, TileIdentifier::GetForNoMIndexAndNoSceneIndex());
     ASSERT_EQ(map_z_subblocks.size(), 10);
     for (auto iterator = map_z_subblocks.cbegin(); iterator != map_z_subblocks.cend(); ++iterator)
     {
@@ -179,7 +179,7 @@ TEST(Czi_Helpers, GetSubblocksForBrickNoMindexTest)
     }
 
     brick_coordinate = CDimCoordinate::Parse("C1");
-    map_z_subblocks = CziHelpers::GetSubblocksForBrick(reader.get(), brick_coordinate, TileIdentifier::GetForNoMIndexAndNoSceneIndex()/*numeric_limits<int>::min()*/);
+    map_z_subblocks = CziHelpers::GetSubblocksForBrick(reader.get(), brick_coordinate, TileIdentifier::GetForNoMIndexAndNoSceneIndex());
     ASSERT_EQ(map_z_subblocks.size(), 10);
     for (auto iterator = map_z_subblocks.cbegin(); iterator != map_z_subblocks.cend(); ++iterator)
     {

@@ -43,25 +43,17 @@ using namespace libCZI;
     document_info.document_origin_y = statistics.boundingBoxLayer0Only.y;
 
     auto vector_mindex_and_rect = CziHelpers::GetTileIdentifierRectangles(czi_reader);
-    if (vector_mindex_and_rect.size() == 1/*&& !Utils::IsValidMindex(vector_mindex_and_rect.cbegin()->mIndex)*/ )  // TODO(JBL)
+
+    // TODO(JBL): 
+    // If we have more than one element, then the tile-identifiers must be unique (and there must not be an invalid m-index). We should
+    // check for this here.
+    for (const auto& item : vector_mindex_and_rect)
     {
-        // no m-index present, i.e. we assume a single tile per plane
-        const auto it = vector_mindex_and_rect.cbegin();
-        BrickRectPositionInfo position_info{ it->rectangle.x, it->rectangle.y, static_cast<uint32_t>(it->rectangle.w), static_cast<uint32_t>(it->rectangle.h) };
-        document_info.map_brickid_position.insert(pair<BrickInPlaneIdentifier, BrickRectPositionInfo>(BrickInPlaneIdentifier(), position_info));
-    }
-    else
-    {
-        // TODO(JBL): in this case, the size must be >1 and there must not be an invalid m-index - which we should check for
-        for (const auto& item : vector_mindex_and_rect)
-        {
-            BrickInPlaneIdentifier brick_identifier;
-            brick_identifier.m_index = item.tile_identifier.m_index.value_or(std::numeric_limits<int>::min());
-            brick_identifier.s_index = item.tile_identifier.scene_index.value_or(std::numeric_limits<int>::min());
-            BrickRectPositionInfo position_info{ item.rectangle.x, item.rectangle.y, static_cast<uint32_t>(item.rectangle.w), static_cast<uint32_t>(item.rectangle.h) };
-            // TODO(JBL): must not have a duplicate m-index
-            document_info.map_brickid_position.insert(pair<BrickInPlaneIdentifier, BrickRectPositionInfo>(brick_identifier, position_info));
-        }
+        BrickInPlaneIdentifier brick_identifier;
+        brick_identifier.m_index = item.tile_identifier.m_index.value_or(std::numeric_limits<int>::min());
+        brick_identifier.s_index = item.tile_identifier.scene_index.value_or(std::numeric_limits<int>::min());
+        BrickRectPositionInfo position_info{ item.rectangle.x, item.rectangle.y, static_cast<uint32_t>(item.rectangle.w), static_cast<uint32_t>(item.rectangle.h) };
+        document_info.map_brickid_position.insert(pair<BrickInPlaneIdentifier, BrickRectPositionInfo>(brick_identifier, position_info));
     }
 
     document_info.map_channelindex_pixeltype = CziHelpers::GetMapOfChannelsToPixeltype(czi_reader);

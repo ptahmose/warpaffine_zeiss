@@ -83,6 +83,8 @@ void AppContext::FatalError(const std::string& message)
     this->WriteDebugString(message.c_str());
 #endif
     this->log_->WriteLineStdErr(message);
+
+    // note: the exit-code of the application will be 134 in this case
     abort();
 }
 

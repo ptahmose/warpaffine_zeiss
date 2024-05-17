@@ -153,7 +153,7 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
     ostringstream ss;
     ss << "DoBrick: " << Utils::DimCoordinateToString(&coordinate) << " " << tile_identifier.ToInformalString() << " -> size=" << map_z_subblockindex.size() << endl;
     this->GetContextBase().WriteDebugString(ss.str().c_str());
-*/    
+*/
 
     BrickOutputInfo* brick_output_data = new BrickOutputInfo();
     brick_output_data->max_count = static_cast<int>(map_z_subblockindex.size());

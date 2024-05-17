@@ -19,7 +19,7 @@ void TaskArenaTbb::AddTask(TaskType task_type, const std::function<void()>& task
 {
     ++this->queue_length;
     this->arena.enqueue(
-        [=]() ->void
+        [this, task]() ->void
         {
             --this->queue_length;
             ++this->active_tasks;
@@ -45,7 +45,7 @@ void TaskArenaTbb::SuspendCurrentTask(const std::function<void(SuspendHandle)>& 
     tbb::task::suspend(
         [&](tbb::task::suspend_point tag) 
         {
-        // Dedicated user-managed activity that processes async requests.
+            // Dedicated user-managed activity that processes async requests.
             func_pass_resume_handle(tag); // could be OpenCL/IO/Database/Network etc.
         }); // execution will be resumed after this function
 }

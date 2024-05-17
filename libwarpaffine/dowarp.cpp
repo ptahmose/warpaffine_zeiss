@@ -86,7 +86,7 @@ DoWarp::OutputBrickInfoRepository::OutputBrickInfoRepository(const AppContext& c
             destination_brick_info.tiling.push_back(tiling_rect_and_mindex);
         }
 
-        this->map_brickid_destinatiobrickinfo_.insert(pair<BrickInPlaneIdentifier, DestinationBrickInfo>(item.first, destination_brick_info));
+        this->map_brickid_destinationbrickinfo_.insert(pair<BrickInPlaneIdentifier, DestinationBrickInfo>(item.first, destination_brick_info));
         total_number_of_output_subblocks += tiling.size() * destination_brick_info.cuboid.depth;
     }
 
@@ -95,7 +95,7 @@ DoWarp::OutputBrickInfoRepository::OutputBrickInfoRepository(const AppContext& c
 
 IntSize3 DoWarp::OutputBrickInfoRepository::GetOutputExtent(const BrickInPlaneIdentifier& brick_identifier) const
 {
-    const auto& item = this->map_brickid_destinatiobrickinfo_.at(brick_identifier);
+    const auto& item = this->map_brickid_destinationbrickinfo_.at(brick_identifier);
     IntSize3 extent;
     extent.width = item.cuboid.width;
     extent.height = item.cuboid.height;
@@ -105,12 +105,12 @@ IntSize3 DoWarp::OutputBrickInfoRepository::GetOutputExtent(const BrickInPlaneId
 
 const DoWarp::OutputBrickInfoRepository::DestinationBrickInfo& DoWarp::OutputBrickInfoRepository::GetDestinationInfo(const BrickInPlaneIdentifier& brick_identifier) const
 {
-    return this->map_brickid_destinatiobrickinfo_.at(brick_identifier);
+    return this->map_brickid_destinationbrickinfo_.at(brick_identifier);
 }
 
 IntCuboid DoWarp::OutputBrickInfoRepository::GetOutputVolume(const BrickInPlaneIdentifier& brick_identifier) const
 {
-    const auto& item = this->map_brickid_destinatiobrickinfo_.at(brick_identifier);
+    const auto& item = this->map_brickid_destinationbrickinfo_.at(brick_identifier);
     return item.cuboid;
 }
 
@@ -281,7 +281,7 @@ void DoWarp::WaitUntilDone()
     }
 }
 
-bool DoWarp::TryGetHash(std::array<uint8_t, 16>* hash_code)
+bool DoWarp::TryGetHash(std::array<uint8_t, 16>* hash_code) const
 {
     if (this->calculate_result_hash_)
     {
@@ -301,7 +301,11 @@ void DoWarp::InputBrick(const Brick& brick, const BrickCoordinateInfo& coordinat
     BrickInPlaneIdentifier brick_in_plane_identifier;
     brick_in_plane_identifier.m_index = coordinate_info.mIndex;
     brick_in_plane_identifier.s_index = coordinate_info.scene_index;
+
+    // TODO(JBL): in the unfortunate case where our bookkeeping is not correct (e.g. we have a brick which is not in our map), we currently 
+    //             would throw an exception and crash. We should handle this more gracefully, at least by logging an error message.
     const auto& destination_brick_info = this->output_brick_info_repository_.GetDestinationInfo(brick_in_plane_identifier);
+
     for (size_t n = 0; n < destination_brick_info.tiling.size(); n++)
     {
         auto destination_brick = this->CreateBrickAndWaitUntilAvailable(

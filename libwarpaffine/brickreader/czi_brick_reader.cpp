@@ -158,7 +158,7 @@ void CziBrickReader::ReadBrick()
             {
                 BrickCoordinateInfo brick_coordinate_info;
                 brick_coordinate_info.coordinate = coordinate_of_brick;
-                brick_coordinate_info.mIndex = tile_identifier.m_index.value_or(std::numeric_limits<int>::min());// m_index_of_brick;
+                brick_coordinate_info.mIndex = tile_identifier.m_index.value_or(std::numeric_limits<int>::min());
                 brick_coordinate_info.scene_index = tile_identifier.scene_index.value_or(std::numeric_limits<int>::min());
                 brick_coordinate_info.x_position = rectangle_of_brick.x;
                 brick_coordinate_info.y_position = rectangle_of_brick.y;
