@@ -64,7 +64,7 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
     // * We limit the memory available for "destination brick" to about 1/3 of the main-memory
     // * We set the high-water mark to 60% of the main memory. The high-water mark determines around when the
     //    reader throttles, or - when that amount of memory is allocated (in total), then the reader throttles.
-    
+
     uint64_t high_water_mark_limit = this->physical_memory_size_ * 6 / 10;
 
     // high_water_mark_limit must be larger than "memory_characteristics.max_size_of_input_brick" - if this is not the case
@@ -73,10 +73,32 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
 
     uint64_t limit_for_memory_type_destination_brick = this->physical_memory_size_ / 3;
 
+    // the limit for the memory type "destination brick" must not lower than the "max_size_of_output_brick_including_tiling"
+    // (in fact, it must also not be equal to it)
+    if (limit_for_memory_type_destination_brick <= memory_characteristics.max_size_of_output_brick_including_tiling)
+    {
+        limit_for_memory_type_destination_brick = memory_characteristics.max_size_of_output_brick_including_tiling + 1;
+
+        // we adjust the high_water_mark_limit then...
+        high_water_mark_limit = (this->physical_memory_size_  - limit_for_memory_type_destination_brick) * 94 / 100;
+    }
+
     // well, this limit must not be larger than "what's remaining if we subtract the high_water_mark_limit"
-    if (limit_for_memory_type_destination_brick > this->physical_memory_size_- high_water_mark_limit)
+    if (limit_for_memory_type_destination_brick > this->physical_memory_size_ - high_water_mark_limit)
     {
         limit_for_memory_type_destination_brick = this->physical_memory_size_ - high_water_mark_limit;
+    }
+
+    // if the requirements are not fulfilled now, we get out of here - otherwise we likely would deadlock
+    if (limit_for_memory_type_destination_brick <= memory_characteristics.max_size_of_output_brick_including_tiling ||
+        high_water_mark_limit <= memory_characteristics.max_size_of_input_brick)
+    {
+        ostringstream string_stream;
+        string_stream.imbue(this->app_context_.GetFormattingLocale());
+        string_stream << "Unable to process this document: No suitable memory configuration could be determined." << endl
+            << "This program will exit now. (Check the synopsis for how the memory-size assumed can be adjusted)" << endl;
+        this->app_context_.GetLog()->WriteLineStdOut(string_stream.str());
+        return false;
     }
 
     this->app_context_.GetAllocator().SetMaximumMemoryLimitForMemoryType(BrickAllocator::MemoryType::DestinationBrick, limit_for_memory_type_destination_brick);
@@ -118,7 +140,7 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
         deskew_document_info.map_brickid_position.cend(),
         [](const auto& x, const auto& y)
         {
-            return x.second.width * x.second.height < y.second.width* y.second.height;
+            return x.second.width * x.second.height < y.second.width * y.second.height;
         });
 
     // and now, we determine the "largest pixeltype"
