@@ -79,12 +79,12 @@ void WarpAffineIPP::ExecuteMinimalSource(
 
     // As of the time of writing, the IPP has trouble if the source or the destination is
     // beyond 2GB it seems. What we do here - if the source or the destination buffer is 
-    // larger than 2GB, we fall back to the reference implemenation.
+    // larger than 2GB, we fall back to the reference implementation.
     constexpr uint64_t kSafeSizeForIppOperation = numeric_limits<int32_t>::max();
     if (static_cast<uint64_t>(source_brick.info.stride_plane) * integer_source_voi_clipped.depth > kSafeSizeForIppOperation ||
         static_cast<uint64_t>(destination_brick.info.stride_plane) * destination_brick.info.depth > kSafeSizeForIppOperation)
     {
-        // The reference-implemenation currently only supports NN and linear interpolation. What we do here now is
+        // The reference-implementation currently only supports NN and linear interpolation. What we do here now is
         //  that we "silently" map all supported interpolation modes to this.
         // TODO(JBL): this is of course lame
         Interpolation interpolation_mode_adjusted;

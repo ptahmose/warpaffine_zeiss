@@ -49,6 +49,9 @@ public:
 
         /// The Y-position of the subblock.
         int y_position{ 0 };
+
+        /// The ID of the slice
+        int slice_id;
     };
 
     /// Gets number of currently pending slice write operations.

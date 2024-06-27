@@ -271,6 +271,7 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
     int max_tile_extent;
     string override_ram_size_parameter;
     bool override_check_for_skewed_source = false;
+    bool use_acquisition_tiles = false;
     app.add_option("-s,--source", source_filename, "The source CZI-file to be processed.")
         ->option_text("SOURCE_FILE")
         ->required();
@@ -342,6 +343,8 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
         ->check(memory_size_validator);
     app.add_flag("--override-check-for-skewed-source", override_check_for_skewed_source,
         "Override check of source-document whether it is marked as containing 'skewed z-stacks'.");
+    app.add_flag("--use-acquisition-tiles", use_acquisition_tiles,
+        "Adds metadata to identify which subblocks were split during processing, but can be treated as one contiguous area.");
 
     auto formatter = make_shared<CustomFormatter>();
     app.formatter(formatter);
@@ -376,6 +379,7 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
     this->hash_result_ = hash_result;
     this->max_tile_extent_ = max_tile_extent;
     this->override_check_for_skewed_source_ = override_check_for_skewed_source;
+    this->use_acquisition_tiles_ = use_acquisition_tiles;
     this->source_stream_class_ = argument_source_stream_class;
 
     if (!override_ram_size_parameter.empty())

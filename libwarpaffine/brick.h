@@ -19,6 +19,7 @@ struct BrickInfo
     std::uint32_t       depth;          ///< The depth of the brick in pixels.
     std::uint32_t       stride_line;    ///< The stride of a line in bytes.
     std::uint32_t       stride_plane;   ///< The stride of a slice (aka plane) in bytes.
+    //std::int32_t        slice_id;       ///< The slice id. This will be used to identify subblocks that originate from the same brick.
 
     /// Gets size of the brick in bytes. This is only counting the "payload" data.
     /// \returns The (payload) size of the brick in bytes.

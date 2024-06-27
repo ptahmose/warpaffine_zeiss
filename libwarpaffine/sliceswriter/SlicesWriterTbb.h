@@ -33,6 +33,8 @@ private:
     };
 
     tbb::concurrent_bounded_queue<SubBlockWriteInfo2> queue_;
+    libCZI::GUID retilingBaseId_;
+    bool use_acquisition_tiles_;
 public:
     CziSlicesWriterTbb(AppContext& context, const std::wstring& filename);
 
@@ -47,4 +49,5 @@ public:
 private:
     void WriteWorker();
     void CopyMetadata(libCZI::IXmlNodeRead* rootSource, libCZI::IXmlNodeRw* rootDestination);
+    libCZI::GUID CreateRetilingIdWithZandSlice(int z, int slice) const;
 };
