@@ -166,7 +166,6 @@ public:
     bool TryGetHash(std::array<uint8_t, 16>* hash_code) const;
 private:
     void InputBrick(const Brick& brick, const BrickCoordinateInfo& coordinate_info);
-private:
     std::vector<ITaskArena::SuspendHandle> resume_handles_;
     std::mutex mutex_resume_handles_;
 
