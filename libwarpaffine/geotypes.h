@@ -108,5 +108,4 @@ struct SubblockXYM
     int y_position{ 0 };
     std::optional<int> m_index;         ///< The m-index of the subblock.
     std::optional<int> scene_index;     ///< The scene-index of the subblock.
-    //int slice_id;
 };
