@@ -51,7 +51,7 @@ public:
         int y_position{ 0 };
 
         /// The ID of the slice
-        int slice_id;
+        std::optional<std::uint32_t> brick_id;
     };
 
     /// Gets number of currently pending slice write operations.

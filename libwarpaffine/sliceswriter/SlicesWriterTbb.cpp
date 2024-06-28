@@ -80,11 +80,11 @@ void CziSlicesWriterTbb::WriteWorker()
             add_subblock_info.ptrData = sub_block_write_info.add_slice_info.subblock_raw_data->GetPtr();
             add_subblock_info.dataSize = sub_block_write_info.add_slice_info.subblock_raw_data->GetSizeOfData();
 
-            if (this->use_acquisition_tiles_) 
+            if (sub_block_write_info.add_slice_info.brick_id.has_value() && this->use_acquisition_tiles_)
             {
                 int z;
                 sub_block_write_info.add_slice_info.coordinate.TryGetPosition(libCZI::DimensionIndex::Z, &z);
-                auto guid = this->CreateRetilingIdWithZandSlice(z, sub_block_write_info.add_slice_info.slice_id);
+                auto guid = this->CreateRetilingIdWithZandSlice(z, sub_block_write_info.add_slice_info.brick_id.value());
 
                 std::ostringstream oss;
                 oss << "<METADATA><Tags><RetilingId>"
@@ -143,8 +143,8 @@ void CziSlicesWriterTbb::WriteWorker()
     }
 }
 
-libCZI::GUID CziSlicesWriterTbb::CreateRetilingIdWithZandSlice(int z, int slice) 
-const {
+libCZI::GUID CziSlicesWriterTbb::CreateRetilingIdWithZandSlice(int z, uint32_t slice) const
+{
     libCZI::GUID guid = this-> retilingBaseId_;
     guid.Data4[0] = static_cast<uint8_t>(z >> 24);
     guid.Data4[1] = static_cast<uint8_t>(z >> 16);

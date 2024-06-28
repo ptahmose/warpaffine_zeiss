@@ -49,5 +49,5 @@ public:
 private:
     void WriteWorker();
     void CopyMetadata(libCZI::IXmlNodeRead* rootSource, libCZI::IXmlNodeRw* rootDestination);
-    libCZI::GUID CreateRetilingIdWithZandSlice(int z, int slice) const;
+    libCZI::GUID CreateRetilingIdWithZandSlice(int z, std::uint32_t slice) const;
 };

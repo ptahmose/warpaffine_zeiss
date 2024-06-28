@@ -68,13 +68,15 @@ class DoWarp
         /// index.
         struct DestinationBrickInfo
         {
-            IntCuboid   cuboid;
+            std::uint32_t brick_id;  ///< This id uniquely identifies the destination brick, and since there is a one-to-one correspondence between source and destination bricks, 
+                                     ///< it also uniquely identifies the source brick.
+            IntCuboid cuboid;
             std::vector<TilingRectAndMandSceneIndex> tiling;
-            int slice_id;
         };
     private:
         std::map<BrickInPlaneIdentifier, DestinationBrickInfo> map_brickid_destinationbrickinfo_;
         std::uint32_t number_of_subblocks_to_output_{ 0 };
+        bool has_there_been_a_retiling_on_any_destination_brick_{ false };
     public:
         OutputBrickInfoRepository(const AppContext& context, const DeskewDocumentInfo& document_info, const Eigen::Matrix4d& transformation_matrix);
 
@@ -91,6 +93,8 @@ class DoWarp
         ///
         /// \returns The total number of subblocks to output.
         [[nodiscard]] std::uint32_t GetTotalNumberOfSubblocksToOutput() const;
+
+        [[nodiscard]] bool HasThereBeenRetilingOnAnyDestinationBrick() const { return this->has_there_been_a_retiling_on_any_destination_brick_; };
     private:
         static std::vector<libCZI::IntRect> Create2dTiling(std::uint32_t max_extent, const libCZI::IntRect& rectangle);
     };
@@ -172,7 +176,7 @@ private:
         int z_slice;
     };
 
-    void ProcessOutputSlice(OutputSliceToCompressTaskInfo* output_slice_task_info, const libCZI::CDimCoordinate& coordinate, const SubblockXYM& xym, int source_brick_id);
+    void ProcessOutputSlice(OutputSliceToCompressTaskInfo* output_slice_task_info, const libCZI::CDimCoordinate& coordinate, const SubblockXYM& xym, std::uint32_t source_brick_id);
 
     void IncWarpTasksInFlight();
     void DecWarpTasksInFlight();
@@ -186,7 +190,7 @@ private:
     Brick CreateBrick(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth);
     Brick CreateBrickAndWaitUntilAvailable(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth/*, int slice_id*/);
 
-    void ProcessBrickCommon2(const Brick& brick, int source_brick_id, const Brick& destination_brick, const BrickCoordinateInfo& coordinate_info, std::uint32_t source_depth, const OutputBrickInfoRepository::TilingRectAndMandSceneIndex& rect_and_tile_identifier);
+    void ProcessBrickCommon2(const Brick& brick, std::uint32_t brick_id, const Brick& destination_brick, const BrickCoordinateInfo& coordinate_info, std::uint32_t source_depth, const OutputBrickInfoRepository::TilingRectAndMandSceneIndex& rect_and_tile_identifier);
 
     std::tuple<libCZI::CompressionMode, std::shared_ptr<libCZI::IMemoryBlock>> Compress(const OutputSliceToCompressTaskInfo& output_slice_task_info);
 
