@@ -94,7 +94,7 @@ class DoWarp
         /// \returns The total number of subblocks to output.
         [[nodiscard]] std::uint32_t GetTotalNumberOfSubblocksToOutput() const;
 
-        /// Query whether there been retiling on any destination brick. This is intended to be used in order to
+        /// Query whether there has been a retiling on any destination brick. This is intended to be used in order to
         /// decide whether it is necessary to have a retiling-id in the output document.
         ///
         /// \returns    True if there been retiling on any destination brick, false if not.
