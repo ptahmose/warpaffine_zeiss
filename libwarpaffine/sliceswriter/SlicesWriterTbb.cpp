@@ -105,7 +105,7 @@ void CziSlicesWriterTbb::WriteWorker()
 
                 const string metadata_xml = oss.str();
                 add_subblock_info.ptrSbBlkMetadata = metadata_xml.c_str();
-                add_subblock_info.sbBlkMetadataSize = metadata_xml.size();
+                add_subblock_info.sbBlkMetadataSize = static_cast<uint32_t>(metadata_xml.size());
 
                 this->writer_->SyncAddSubBlock(add_subblock_info);
             }

@@ -50,7 +50,8 @@ public:
         /// The Y-position of the subblock.
         int y_position{ 0 };
 
-        /// The ID of the slice
+        /// The brick-id this slice belongs to. If present AND the writer supports it, this id
+        /// together with the z-index will be used to construct a retiling-id for the subblock.
         std::optional<std::uint32_t> brick_id;
     };
 

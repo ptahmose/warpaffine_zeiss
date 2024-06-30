@@ -419,6 +419,10 @@ void DoWarp::ProcessOutputSlice(OutputSliceToCompressTaskInfo* output_slice_task
     add_slice_info.scene_index = xym.scene_index;
     add_slice_info.x_position = xym.x_position;
     add_slice_info.y_position = xym.y_position;
+
+    // Only specify a brick_id if there has been a retiling on any destination brick. If it is not necessary,
+    // then adding a retiling-id with the output-document is strictly superfluous - so we better don't want to put
+    // it in.
     if (this->output_brick_info_repository_.HasThereBeenRetilingOnAnyDestinationBrick())
     {
         add_slice_info.brick_id = source_brick_id;
