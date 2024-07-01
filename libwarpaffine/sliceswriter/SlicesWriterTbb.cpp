@@ -3,11 +3,13 @@
 // SPDX-License-Identifier: MIT
 
 #include "SlicesWriterTbb.h"
+#include <iomanip>
 #include <array>
 #include <memory>
 #include <string>
 #include <tuple>
 #include <utility>
+#include <iostream>
 
 using namespace std;
 using namespace libCZI;
@@ -16,6 +18,8 @@ CziSlicesWriterTbb::CziSlicesWriterTbb(AppContext& context, const std::wstring& 
     : context_(context)
 {
     this->queue_.set_capacity(500 * 10);
+    this->use_acquisition_tiles_ = context.GetCommandLineOptions().GetUseAcquisitionTiles();
+    this->retilingBaseId_ = Utilities::GenerateGuid();
 
     // Create an "output-stream-object"
     const auto output_stream = libCZI::CreateOutputStreamForFile(filename.c_str(), true);
@@ -75,7 +79,40 @@ void CziSlicesWriterTbb::WriteWorker()
 
             add_subblock_info.ptrData = sub_block_write_info.add_slice_info.subblock_raw_data->GetPtr();
             add_subblock_info.dataSize = sub_block_write_info.add_slice_info.subblock_raw_data->GetSizeOfData();
-            this->writer_->SyncAddSubBlock(add_subblock_info);
+
+            if (sub_block_write_info.add_slice_info.brick_id.has_value() && this->use_acquisition_tiles_)
+            {
+                int z;
+                sub_block_write_info.add_slice_info.coordinate.TryGetPosition(libCZI::DimensionIndex::Z, &z);
+                auto guid = this->CreateRetilingIdWithZandSlice(z, sub_block_write_info.add_slice_info.brick_id.value());
+
+                std::ostringstream oss;
+                oss << "<METADATA><Tags><RetilingId>"
+                    << std::hex << std::uppercase
+                    << std::setw(8) << std::setfill('0') << guid.Data1 << '-'
+                    << std::setw(4) << std::setfill('0') << guid.Data2 << '-'
+                    << std::setw(4) << std::setfill('0') << guid.Data3 << '-'
+                    << std::setw(2) << static_cast<uint32_t>(guid.Data4[0])
+                    << std::setw(2) << static_cast<uint32_t>(guid.Data4[1]) << '-'
+                    << std::setw(2) << static_cast<uint32_t>(guid.Data4[2])
+                    << std::setw(2) << static_cast<uint32_t>(guid.Data4[3])
+                    << std::setw(2) << static_cast<uint32_t>(guid.Data4[4])
+                    << std::setw(2) << static_cast<uint32_t>(guid.Data4[5])
+                    << std::setw(2) << static_cast<uint32_t>(guid.Data4[6])
+                    << std::setw(2) << static_cast<uint32_t>(guid.Data4[7])
+                    << std::dec
+                    <<"</RetilingId></Tags></METADATA>";
+
+                const string metadata_xml = oss.str();
+                add_subblock_info.ptrSbBlkMetadata = metadata_xml.c_str();
+                add_subblock_info.sbBlkMetadataSize = static_cast<uint32_t>(metadata_xml.size());
+
+                this->writer_->SyncAddSubBlock(add_subblock_info);
+            }
+            else
+            {
+                this->writer_->SyncAddSubBlock(add_subblock_info);
+            }
 
             --this->number_of_slicewrite_operations_in_flight_;
         }
@@ -104,6 +141,22 @@ void CziSlicesWriterTbb::WriteWorker()
         text << "SlicesWriterTbb-worker crashed: " << exception.what() << ".";
         this->context_.FatalError(text.str());
     }
+}
+
+libCZI::GUID CziSlicesWriterTbb::CreateRetilingIdWithZandSlice(int z, uint32_t slice) const
+{
+    libCZI::GUID guid = this-> retilingBaseId_;
+    guid.Data4[0] = static_cast<uint8_t>(z >> 24);
+    guid.Data4[1] = static_cast<uint8_t>(z >> 16);
+    guid.Data4[2] = static_cast<uint8_t>(z >> 8);
+    guid.Data4[3] = static_cast<uint8_t>(z);
+
+    guid.Data4[4] = static_cast<uint8_t>(slice >> 24);
+    guid.Data4[5] = static_cast<uint8_t>(slice >> 16);
+    guid.Data4[6] = static_cast<uint8_t>(slice >> 8);
+    guid.Data4[7] = static_cast<uint8_t>(slice);
+
+    return guid;
 }
 
 void CziSlicesWriterTbb::Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,

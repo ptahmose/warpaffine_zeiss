@@ -40,6 +40,7 @@ public:
     }
 };
 
+
 DoWarp::OutputBrickInfoRepository::OutputBrickInfoRepository(const AppContext& context, const DeskewDocumentInfo& document_info, const Eigen::Matrix4d& transformation_matrix)
 {
     // Here we create a tiling of the output brick - in other words, we ensure that the output-tiles are of a size
@@ -55,12 +56,15 @@ DoWarp::OutputBrickInfoRepository::OutputBrickInfoRepository(const AppContext& c
     //  as the key.
     map<int, int> scene_index_to_m_index;
 
+    uint32_t brick_id = 0;
     for (const auto& item : document_info.map_brickid_position)
-    { 
+    {
         Eigen::Vector3d edge_point;
         Eigen::Vector3d extent;
         DeskewHelpers::CalculateAxisAlignedBoundingBox(item.second.width, item.second.height, document_info.depth, transformation_matrix, edge_point, extent);
         DestinationBrickInfo destination_brick_info;
+
+        destination_brick_info.brick_id = brick_id++;
         destination_brick_info.cuboid.x_position = 0;
         destination_brick_info.cuboid.y_position = 0;
         destination_brick_info.cuboid.z_position = 0;
@@ -75,11 +79,18 @@ DoWarp::OutputBrickInfoRepository::OutputBrickInfoRepository(const AppContext& c
             s_index = item.first.s_index;
         }
 
+        // Keep track if there has been a retiling on any destination brick - we need this in order to decide whether the
+        // retiling-id should be used in the output-slices. We only want to write a retiling-id into the CZI if a retiling took place (on any brick).
+        if (tiling.size() > 1)
+        {
+            this->has_there_been_a_retiling_on_any_destination_brick_ = true;
+        }
+
         for (const auto& tile : tiling)
         {
             TilingRectAndMandSceneIndex tiling_rect_and_mindex{};
             tiling_rect_and_mindex.s_index = s_index.value_or(numeric_limits<int>::min());
-            
+
             // this will nicely either read and increment an existing m-index from the map, or insert a new one with value zero
             tiling_rect_and_mindex.m_index = scene_index_to_m_index[tiling_rect_and_mindex.s_index]++;
             tiling_rect_and_mindex.rectangle = tile;
@@ -323,16 +334,17 @@ void DoWarp::InputBrick(const Brick& brick, const BrickCoordinateInfo& coordinat
                     coordinate_info_captured = coordinate_info,
                     tile_captured = destination_brick_info.tiling[n],
                     source_cuboid_depth = destination_brick_info.cuboid.depth,
-                    destination_brick_captured = destination_brick
+                    destination_brick_captured = destination_brick,
+                    brick_id_captured = destination_brick_info.brick_id
             ]()->void
             {
-                this->ProcessBrickCommon2(brick_captured, destination_brick_captured, coordinate_info_captured, source_cuboid_depth, tile_captured/*tile_captured.rectangle, tile_captured.m_index*/);
+                this->ProcessBrickCommon2(brick_captured, brick_id_captured, destination_brick_captured, coordinate_info_captured, source_cuboid_depth, tile_captured);
                 this->DecWarpTasksInFlight();
             });
     }
 }
 
-void DoWarp::ProcessBrickCommon2(const Brick& brick, const Brick& destination_brick, const BrickCoordinateInfo& coordinate_info, uint32_t source_depth, const OutputBrickInfoRepository::TilingRectAndMandSceneIndex& rect_and_tile_identifier/*const IntRect& roi, int m_index*/)
+void DoWarp::ProcessBrickCommon2(const Brick& brick, uint32_t brick_id, const Brick& destination_brick, const BrickCoordinateInfo& coordinate_info, uint32_t source_depth, const OutputBrickInfoRepository::TilingRectAndMandSceneIndex& rect_and_tile_identifier)
 {
     this->warp_affine_engine_->Execute(
         this->transformation_matrix_,
@@ -380,13 +392,13 @@ void DoWarp::ProcessBrickCommon2(const Brick& brick, const Brick& destination_br
                     xym.scene_index = coordinate_info.scene_index;
                 }
 
-                this->ProcessOutputSlice(slice_to_compress_task_info, coord, xym);
+                this->ProcessOutputSlice(slice_to_compress_task_info, coord, xym, brick_id);
                 this->DecCompressionTasksInFlight();
             });
     }
 }
 
-void DoWarp::ProcessOutputSlice(OutputSliceToCompressTaskInfo* output_slice_task_info, const libCZI::CDimCoordinate& coordinate, const SubblockXYM& xym)
+void DoWarp::ProcessOutputSlice(OutputSliceToCompressTaskInfo* output_slice_task_info, const libCZI::CDimCoordinate& coordinate, const SubblockXYM& xym, uint32_t source_brick_id)
 {
     auto compression_mode_and_memblk = this->Compress(*output_slice_task_info);
 
@@ -406,6 +418,15 @@ void DoWarp::ProcessOutputSlice(OutputSliceToCompressTaskInfo* output_slice_task
     add_slice_info.scene_index = xym.scene_index;
     add_slice_info.x_position = xym.x_position;
     add_slice_info.y_position = xym.y_position;
+
+    // Only specify a brick_id if there has been a retiling on any destination brick. If it is not necessary,
+    // then adding a retiling-id with the output-document is strictly superfluous - so we better don't want to put
+    // it in.
+    if (this->output_brick_info_repository_.HasThereBeenRetilingOnAnyDestinationBrick())
+    {
+        add_slice_info.brick_id = source_brick_id;
+    }
+
     this->writer_->AddSlice(add_slice_info);
     ++this->number_of_subblocks_added_to_writer_;
 
@@ -500,6 +521,7 @@ Brick DoWarp::CreateBrickAndWaitUntilAvailable(libCZI::PixelType pixel_type, std
     brick.info.depth = depth;
     brick.info.stride_line = width * Utils::GetBytesPerPixel(pixel_type);
     brick.info.stride_plane = brick.info.stride_line * brick.info.height;
+
     const uint64_t size_of_brick = brick.info.stride_plane * static_cast<uint64_t>(brick.info.depth);
     for (;;)
     {

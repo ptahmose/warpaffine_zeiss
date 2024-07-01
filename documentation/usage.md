@@ -78,6 +78,10 @@ Options:
                     Override check of source-document whether it is marked as
                     containing 'skewed z-stacks'.
 
+  --use-acquisition-tiles
+                    Adds metadata to identify which sub-blocks were split during
+                    processing, but can be treated as one contiguous area.
+
 
 
 libCZI version: 0.50.0
@@ -129,6 +133,9 @@ IPP version: 2021.8 (r0xba45569b) -  ippIP AVX-512F/CD/BW/DQ/VL (k0)
 * The source document is examined whether it is suitable to be processed by the application. If it is not, the application will exit with an error. One of those checks is
   examining the XML-metadata of the document, in order to determine that the document is tagged as containing a skewed z-stack. This check can be
   overwritten with the flag `--override-check-for-skewed-source`.
+* The option `--use-acquisition-tiles` can be used to add metadata to all sub-blocks which allows to identify which of them belong to the same contiguous 2d area. This information can be 
+  used to differentiate between sub-blocks that need to be stitched (because they were acquired at different times and positions) and those that were only split for technical reasons but should
+  be treated as one.
  
 The exit code of the application is 0 (EXIT_SUCCESS) only if it ran to completion without any errors. In case of an error (of any kind) it will be <>0.  
 In case of circumstances which lead to an abnormal termination, information may be written to `stderr` (and this is not controlled by the `--verbosity` argument); output to `stderr` will
@@ -148,7 +155,7 @@ For builds where IPP is available, the IPP-based warp-enigne will be selected by
 So, a complete commandine for a basic operation could look like this:
 
 ```
-./warpaffine --source source_document.czi --destination destination_document.czi --interpolation linear --operation CoverGlassTransform 
+./warpaffine --source source_document.czi --destination destination_document.czi --interpolation linear --operation CoverGlassTransform --use-acquisition-tiles
 ```
 
 [Here](https://asciinema.org/a/595898) is a screencast of the application in action.
