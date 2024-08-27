@@ -8,3 +8,4 @@ version history                 {#version_history}
  0.3.2              |  [5](https://github.com/ZEISS/warpaffine/pull/5)     | bugfix for a deadlock in rare case
  0.4.0              |  [6](https://github.com/ZEISS/warpaffine/pull/6)     | set re-tiling id of sub-blocks to allow for more sensible stitching of resulting CZI
  0.5.0              |  [7](https://github.com/ZEISS/warpaffine/pull/7)     | copy attachments from source document
+ 0.5.1              |  [8](https://github.com/ZEISS/warpaffine/pull/8)     | fix z interval metadata

@@ -38,3 +38,5 @@ build/
 CMakeSettings.json
 cmake-build-*/
 .idea/
+.vscode/launch.json
+.vscode/settings.json
