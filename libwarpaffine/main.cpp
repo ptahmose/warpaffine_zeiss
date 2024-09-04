@@ -545,6 +545,16 @@ int libmain(int argc, char** _argv)
         switch (const auto type_of_operation = app_context.GetCommandLineOptions().GetTypeOfOperation())
         {
         case OperationType::Deskew:
+        {
+            ScalingInfo scaling_info;
+            scaling_info.scaleX = scaling_info.scaleY = document_info.xy_scaling;
+            scaling_info.scaleZ = 0.5 * document_info.z_scaling;
+            writer->Close(
+                get<0>(reader_and_stream)->ReadMetadataSegment()->CreateMetaFromMetadataSegment(),
+                &scaling_info,
+                [type_of_operation](libCZI::IXmlNodeRw* root_node)->void {TweakMetadata(root_node, type_of_operation); });
+            break;
+        }
         case OperationType::CoverGlassTransform:
         case OperationType::CoverGlassTransformAndXYRotated:
             // for those operations the transformation is constructed so that the scaling is isotrophic, so
