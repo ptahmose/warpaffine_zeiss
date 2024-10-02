@@ -18,6 +18,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules" ${CMAKE_MODULE_PATH})
 
+# Determine whether the Win32-API can be used (in other words: whether we are on a Windows-platform or targetting the Windows-platform).
+# Note that just checking for WIN32 is not sufficient here, as this is not defined with environments such as msys2. In those cases, UNIX is defined.
+# The meaning of this switch is: whether Win32-API can be used (and this affects not only compilation but e.g. also linking to the Win32-API, as
+# it is not automatically linked to when using MinGW or Cygwin).
+# TODO(JBL): check whether cross-compiling to Windows works
+if (WIN32 OR CYGWIN OR MSYS OR MINGW OR CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set(WARPAFFINE_HAVE_WIN32_API ON)
+else()
+  set(WARPAFFINE_HAVE_WIN32_API OFF)
+endif()
+
 project ("warpaffine"
           VERSION 0.3.2
           DESCRIPTION "experimental Deskew operation")
@@ -104,8 +115,7 @@ else()
      FetchContent_Declare(
             RapidJSON
             GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
-            GIT_TAG        "v1.1.0"
-            GIT_SHALLOW    TRUE
+            GIT_TAG        7c73dd7de7c4f14379b781418c6e947ad464c818 # master as of 2024-08-16
             PREFIX "${CMAKE_BINARY_DIR}/vendor/rapidjson"
     )
 

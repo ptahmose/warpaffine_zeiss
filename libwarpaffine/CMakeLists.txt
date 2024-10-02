@@ -83,12 +83,11 @@ target_link_libraries(libwarpaffine PRIVATE TBB::tbb libCZIStatic CLI11::CLI11 E
 
 target_include_directories(libwarpaffine PRIVATE ${IPP_INCLUDE_DIRS} ${LIBCZI_INCLUDE_DIR} ${TBB_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
 
-
-if(WIN32)
+if(WARPAFFINE_HAVE_WIN32_API)
 	set(LibWarpAffine_UNIX_ENVIRONMENT 0)
 	set(LibWarpAffine_WIN32_ENVIRONMENT 1)
 endif()
-if(UNIX)
+if(NOT WARPAFFINE_HAVE_WIN32_API)
   set(LibWarpAffine_UNIX_ENVIRONMENT 1)
 	set(LibWarpAffine_WIN32_ENVIRONMENT 0)
 endif()
@@ -110,5 +109,3 @@ configure_file (
   )
 
 target_include_directories(libwarpaffine PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-
-

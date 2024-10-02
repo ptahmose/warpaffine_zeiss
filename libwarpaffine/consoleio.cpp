@@ -7,7 +7,6 @@
 #include <iostream>
 #if LIBWARPAFFINE_WIN32_ENVIRONMENT
 #include <io.h>
-#define NOMINMAX
 #include <Windows.h>
 #endif
 #if LIBWARPAFFINE_UNIX_ENVIRONMENT

@@ -10,7 +10,6 @@
 #include <mutex>
 
 #if LIBWARPAFFINE_WIN32_ENVIRONMENT
-    #define NOMINMAX
     #include <Windows.h>
 #endif
 
