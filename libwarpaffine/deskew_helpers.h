@@ -86,6 +86,9 @@ public:
 
     static IntCuboid FromFloatCuboid(const DoubleCuboid& float_cuboid);
 
+    /// Returns the orthogonal distance of the measurement planes from the document info.
+    static double OrthogonalPlaneDistance(const DeskewDocumentInfo& document_info);
+
 private:
     static double DegreesToRadians(double angle_in_degrees);
     static double RadiansToDegrees(double angle_in_radians);

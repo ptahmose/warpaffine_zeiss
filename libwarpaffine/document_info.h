@@ -142,5 +142,9 @@ struct DeskewDocumentInfo
 
     double          z_scaling{ std::numeric_limits<double>::quiet_NaN() };  ///< The size of one pixel in z-direction in units of micro-meters.
     double          xy_scaling{ std::numeric_limits<double>::quiet_NaN() }; ///< The size of one pixel in x- or y-direction in units of micro-meters.
+
+    /// The angle between the light sheet illumination and the vertical direction,  i.e., the normal of the cover glass.
+    /// This also defines the tilt of the measurement planes with respect to the vertical direction.
+    const double illumination_angle_in_radians = 60.0 / 180.0 * 3.14159265358979323846;
 };
 

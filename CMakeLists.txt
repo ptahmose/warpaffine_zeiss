@@ -19,7 +19,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules" ${CMAKE_MODULE_PATH})
 
 project ("warpaffine"
-          VERSION 0.5.2
+          VERSION 0.5.3
           DESCRIPTION "experimental Deskew operation")
 
 option(WARPAFFINE_BUILD_CLANGTIDY "Build with Clang-Tidy" OFF)

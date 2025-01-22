@@ -548,7 +548,7 @@ int libmain(int argc, char** _argv)
         {
             ScalingInfo scaling_info;
             scaling_info.scaleX = scaling_info.scaleY = document_info.xy_scaling;
-            scaling_info.scaleZ = 0.5 * document_info.z_scaling;
+            scaling_info.scaleZ = DeskewHelpers::OrthogonalPlaneDistance(document_info);
             writer->Close(
                 get<0>(reader_and_stream)->ReadMetadataSegment()->CreateMetaFromMetadataSegment(),
                 &scaling_info,
@@ -557,7 +557,7 @@ int libmain(int argc, char** _argv)
         }
         case OperationType::CoverGlassTransform:
         case OperationType::CoverGlassTransformAndXYRotated:
-            // for those operations the transformation is constructed so that the scaling is isotrophic, so
+            // for those operations the transformation is constructed so that the scaling is isotropic, so
             // we know that the scaling in x,y,z is the same (and as the x-y-scaling was in the source)
         {
             ScalingInfo scaling_info;
