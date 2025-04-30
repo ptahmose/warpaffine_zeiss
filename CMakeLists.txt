@@ -80,7 +80,7 @@ include(FetchContent)
 FetchContent_Declare(
   cli11
   GIT_REPOSITORY https://github.com/CLIUtils/CLI11
-  GIT_TAG        v2.2.0
+  GIT_TAG        v2.5.0
 )
 
 if (NOT WARPAFFINE_USE_PRIVATE_EIGEN3)

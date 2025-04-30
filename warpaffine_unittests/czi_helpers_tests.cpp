@@ -17,6 +17,7 @@ private:
     std::uint32_t width;
     std::uint32_t height;
     std::uint32_t stride;
+    int lockCount{ 0 };
 public:
     CMemBitmapWrapper(libCZI::PixelType pixeltype, std::uint32_t width, std::uint32_t height) :pixeltype(pixeltype), width(width), height(height)
     {
@@ -61,6 +62,7 @@ public:
 
     libCZI::BitmapLockInfo Lock() override
     {
+        ++lockCount;
         libCZI::BitmapLockInfo bitmapLockInfo;
         bitmapLockInfo.ptrData = this->ptrData;
         bitmapLockInfo.ptrDataRoi = this->ptrData;
@@ -69,8 +71,17 @@ public:
         return bitmapLockInfo;
     }
 
+    int GetLockCount() const override
+    {
+        return lockCount;
+    }
+
     void Unlock() override
     {
+        if (lockCount > 0)
+        {
+            --lockCount;
+        }
     }
 };
 

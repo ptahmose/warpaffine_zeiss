@@ -18,6 +18,7 @@ private:
     std::uint32_t width;
     std::uint32_t height;
     std::uint32_t stride;
+    int lockCount{ 0 };
 public:
     CMemBitmapFacade() = delete;
 
@@ -40,6 +41,7 @@ public:
 
     libCZI::BitmapLockInfo	Lock() override
     {
+        ++lockCount;
         libCZI::BitmapLockInfo bitmapLockInfo;
         bitmapLockInfo.ptrData = this->ptrData;
         bitmapLockInfo.ptrDataRoi = this->ptrData;
@@ -50,6 +52,15 @@ public:
 
     void Unlock() override
     {
+        if (lockCount > 0)
+        {
+            --lockCount;
+        }
+    }
+
+    int GetLockCount() const override
+    {
+        return lockCount;
     }
 
     void SetPointer(void* ptr)
