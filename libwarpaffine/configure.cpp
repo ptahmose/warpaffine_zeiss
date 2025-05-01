@@ -44,7 +44,7 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
     // In current implementation, we need to read the source-brick completely to memory. So, let us check
     //  whether this is fitting into memory. 
     // The heuristic we apply her is:
-    // * The very minimum is something like: we need to have on input-brick in memory and (for the very least) one tiled-output-brick
+    // * The very minimum is something like: we need to have one input-brick in memory and (for the very least) one tiled-output-brick
     // * If this does not fit into main-memory - we better give up immediately. This will in all likelihood not work, might bog down the machine and
     //    be for sure incredibly slow.
     const auto minimal_amount_of_memory_required = memory_characteristics.max_size_of_input_brick + memory_characteristics.max_size_of_output_brick_including_tiling;
@@ -84,10 +84,8 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
     }
 
     // well, this limit must not be larger than "what's remaining if we subtract the high_water_mark_limit"
-    if (limit_for_memory_type_destination_brick > this->physical_memory_size_ - high_water_mark_limit)
-    {
-        limit_for_memory_type_destination_brick = this->physical_memory_size_ - high_water_mark_limit;
-    }
+    limit_for_memory_type_destination_brick = std::min(limit_for_memory_type_destination_brick,
+                                                       this->physical_memory_size_ - high_water_mark_limit);
 
     // if the requirements are not fulfilled now, we get out of here - otherwise we likely would deadlock
     if (limit_for_memory_type_destination_brick <= memory_characteristics.max_size_of_output_brick_including_tiling ||
