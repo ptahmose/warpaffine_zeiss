@@ -62,7 +62,7 @@ public:
 
     libCZI::BitmapLockInfo Lock() override
     {
-        ++lockCount;
+        ++this->lockCount;
         libCZI::BitmapLockInfo bitmapLockInfo;
         bitmapLockInfo.ptrData = this->ptrData;
         bitmapLockInfo.ptrDataRoi = this->ptrData;
@@ -73,15 +73,12 @@ public:
 
     int GetLockCount() const override
     {
-        return lockCount;
+        return this->lockCount;
     }
 
     void Unlock() override
     {
-        if (lockCount > 0)
-        {
-            --lockCount;
-        }
+        --this->lockCount;
     }
 };
 

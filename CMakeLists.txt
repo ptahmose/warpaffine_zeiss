@@ -100,19 +100,39 @@ if (WARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON)
         ]=])
     endif()
 else()
-    # since "RapidJSON" is a header-only library, we just have to download it and point to the include directory
-     FetchContent_Declare(
-            RapidJSON
-            GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
-            GIT_TAG        "v1.1.0"
-            GIT_SHALLOW    TRUE
-            PREFIX "${CMAKE_BINARY_DIR}/vendor/rapidjson"
+    # Since "RapidJSON" is a header-only library, we just have to download it and point to the include directory
+    FetchContent_Declare(
+        RapidJSON
+        GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
+        GIT_TAG        24b5e7a8b27f42fa16b96fc70aade9106cf7102f  # master as of 2025-04-30
+        GIT_SHALLOW    TRUE
+        PREFIX "${CMAKE_BINARY_DIR}/vendor/rapidjson"
     )
 
-    if (NOT rapidjson_POPULATED)
-      FetchContent_Populate(RapidJSON)
-      set(RAPIDJSON_INCLUDE_DIRS ${rapidjson_SOURCE_DIR}/include)
+    set(RAPIDJSON_BUILD_DOC OFF CACHE BOOL "" FORCE)
+    set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(RAPIDJSON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+
+    # Save old value if it was set
+    if(DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+        set(_saved_CMAKE_SUPPRESS_DEVELOPER_WARNINGS "${CMAKE_SUPPRESS_DEVELOPER_WARNINGS}")
+    else()
+        unset(_saved_CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
     endif()
+    # Suppress warnings for the external project - otherwise some (harmless) warnings are shown
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE BOOL "" FORCE)
+
+    # Fetch and make RapidJSON available
+    FetchContent_MakeAvailable(RapidJSON)
+
+    # Restore previous setting
+    if(DEFINED _saved_CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+        set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS "${_saved_CMAKE_SUPPRESS_DEVELOPER_WARNINGS}" CACHE BOOL "" FORCE)
+    else()
+        unset(CMAKE_SUPPRESS_DEVELOPER_WARNINGS CACHE)
+    endif()
+
+    set(RAPIDJSON_INCLUDE_DIRS ${rapidjson_SOURCE_DIR}/include)
 endif()
 
 include("${CMAKE_SOURCE_DIR}/modules/CheckForLibAtomicRequired.cmake")
