@@ -69,18 +69,18 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
 
     // high_water_mark_limit must be larger than "memory_characteristics.max_size_of_input_brick" - if this is not the case
     //  (with the heuristic of "60%"), then we set it to this
-    high_water_mark_limit = max(memory_characteristics.max_size_of_input_brick, high_water_mark_limit);
+    high_water_mark_limit = max(1 + memory_characteristics.max_size_of_input_brick, high_water_mark_limit);
 
     uint64_t limit_for_memory_type_destination_brick = this->physical_memory_size_ / 3;
 
-    // the limit for the memory type "destination brick" must not lower than the "max_size_of_output_brick_including_tiling"
+    // the limit for the memory type "destination brick" must not be lower than the "max_size_of_output_brick_including_tiling"
     // (in fact, it must also not be equal to it)
     if (limit_for_memory_type_destination_brick <= memory_characteristics.max_size_of_output_brick_including_tiling)
     {
         limit_for_memory_type_destination_brick = memory_characteristics.max_size_of_output_brick_including_tiling + 1;
 
         // we adjust the high_water_mark_limit then...
-        high_water_mark_limit = (this->physical_memory_size_  - limit_for_memory_type_destination_brick) * 94 / 100;
+        high_water_mark_limit = (this->physical_memory_size_ - limit_for_memory_type_destination_brick) * 94 / 100;
     }
 
     // well, this limit must not be larger than "what's remaining if we subtract the high_water_mark_limit"
