@@ -85,7 +85,7 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
 
     // well, this limit must not be larger than "what's remaining if we subtract the high_water_mark_limit"
     limit_for_memory_type_destination_brick = std::min(limit_for_memory_type_destination_brick,
-                                                       this->physical_memory_size_ - high_water_mark_limit);
+                                                        this->physical_memory_size_ - high_water_mark_limit);
 
     // if the requirements are not fulfilled now, we get out of here - otherwise we likely would deadlock
     if (limit_for_memory_type_destination_brick <= memory_characteristics.max_size_of_output_brick_including_tiling ||
