@@ -375,7 +375,6 @@ void DoWarp::ProcessBrickCommon2(const Brick& brick, uint32_t brick_id, const Br
                     1
                 };
                 const auto xy_transformed = (this->GetTransformationMatrix() * p).hnormalized();
-
                 
                 // ...and project the transformed coordinates onto the projection plane
                 const auto& transformed_and_projected_coordinate = DeskewHelpers::CalculateProjection(
