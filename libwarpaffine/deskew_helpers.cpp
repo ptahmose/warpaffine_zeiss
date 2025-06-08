@@ -305,12 +305,22 @@ using namespace std;
     return cos(document_info.illumination_angle_in_radians) * document_info.z_scaling;
 }
 
-
-/*static*/DeskewHelpers::ProjectionPlaneInfo DeskewHelpers::CalculateProjectionPlane(const Eigen::Matrix4d& transformation_matrix, const Eigen::Vector3d& source_origin_point)
+/*static*/DeskewHelpers::ProjectionPlaneInfo DeskewHelpers::CalculateProjectionPlane(const Eigen::Matrix4d& transformation_matrix, OperationType operation_type, const Eigen::Vector3d& source_origin_point)
 {
     const Eigen::Vector4d origin_point = Eigen::Vector4d::Zero();
-    const Eigen::Vector4d x_direction_point = origin_point + Eigen::Vector4d{ 1, 0, 0, 0 };
-    const Eigen::Vector4d y_direction_point = origin_point + Eigen::Vector4d{ 0, -1, 0, 0 };
+
+    // TODO(JBL): maybe it is possible to derive those directions from the transformation
+    Eigen::Vector4d x_direction_point, y_direction_point;
+    if (operation_type == OperationType::CoverGlassTransformAndXYRotated)
+    {
+        x_direction_point = origin_point + Eigen::Vector4d{ 1, 0, 0, 0 };
+        y_direction_point = origin_point + Eigen::Vector4d{ 0, -1, 0, 0 };
+    }
+    else
+    {
+        x_direction_point = origin_point + Eigen::Vector4d{ 0, 1, 0, 0 };
+        y_direction_point = origin_point + Eigen::Vector4d{ 1, 0, 0, 0 };
+    }
 
     // transform the basis points
     const auto transformed_origin = transformation_matrix * origin_point;
@@ -325,7 +335,7 @@ using namespace std;
     ProjectionPlaneInfo projection_plane_info;
     projection_plane_info.x_axis = v1.normalized(); // new local X - axis (in - plane "down")
     projection_plane_info.y_axis = normal.cross(projection_plane_info.x_axis).normalized(); // new local Y - axis (in - plane "right")
-    projection_plane_info.origin = (transformation_matrix* source_origin_point.homogeneous()).hnormalized(); // origin of the projection plane
+    projection_plane_info.origin = (transformation_matrix * source_origin_point.homogeneous()).hnormalized(); // origin of the projection plane
 
     return projection_plane_info;
 }
@@ -335,8 +345,8 @@ using namespace std;
     const auto point_minus_origin = point - projection_plane_info.origin;
 
     return Eigen::Vector2d
-        {
-            point_minus_origin.dot(projection_plane_info.x_axis),
-            point_minus_origin.dot(projection_plane_info.y_axis)
-        };
+    {
+        point_minus_origin.dot(projection_plane_info.x_axis),
+        point_minus_origin.dot(projection_plane_info.y_axis)
+    };
 }

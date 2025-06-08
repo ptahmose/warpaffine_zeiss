@@ -98,13 +98,15 @@ public:
     /// Returns the orthogonal distance of the measurement planes from the document info.
     static double OrthogonalPlaneDistance(const DeskewDocumentInfo& document_info);
 
-    /// Calculates the projection plane - this is used to transform the X-Y coordinates of the source sub-blocks to the X-Y coordinates of the destination sub-blocks.
+    /// Calculates the projection plane - this is used to transform the X-Y coordinates of the
+    /// source sub-blocks to the X-Y coordinates of the destination sub-blocks.
     ///
     /// \param  transformation_matrix   The transformation matrix.
-    /// \param  source_origin_point     Coordinates of a point, which when transformed defines the origin of the projection plane (optional).
-    ///
+    /// \param  operation_type          The type of the operation.
+    /// \param  source_origin_point     Coordinates of a point, which when transformed defines the
+    ///                                 origin of the projection plane (optional).
     /// \returns    The calculated projection plane.
-    static ProjectionPlaneInfo CalculateProjectionPlane(const Eigen::Matrix4d& transformation_matrix, const Eigen::Vector3d& source_origin_point = Eigen::Vector3d::Zero());
+    static ProjectionPlaneInfo CalculateProjectionPlane(const Eigen::Matrix4d& transformation_matrix, OperationType operation_type, const Eigen::Vector3d& source_origin_point = Eigen::Vector3d::Zero());
 
     /// Calculates the projection onto the projection plane defined by the projection plane info.
     ///

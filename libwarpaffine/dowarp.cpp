@@ -184,7 +184,7 @@ DoWarp::DoWarp(
     this->output_depth_ = static_cast<uint32_t>(round(extent(2)));
 
     // calculate the projection plane
-    this->projection_plane_info_ = DeskewHelpers::CalculateProjectionPlane(transformation_matrix);
+    this->projection_plane_info_ = DeskewHelpers::CalculateProjectionPlane(transformation_matrix, context.GetCommandLineOptions().GetTypeOfOperation());
 
     this->total_number_of_subblocks_to_output = this->output_brick_info_repository_.GetTotalNumberOfSubblocksToOutput() * number_of_3dplanes_to_process;
 
@@ -368,18 +368,21 @@ void DoWarp::ProcessBrickCommon2(const Brick& brick, uint32_t brick_id, const Br
             {
                 // transform the X-Y-coordinates (from the sub-block)
                 const Eigen::Vector4d p
-                    {
-                        static_cast<double>(coordinate_info.x_position - this->document_info_.document_origin_x),
-                        static_cast<double>(coordinate_info.y_position - this->document_info_.document_origin_y),
-                        0,
-                        1
-                    };
+                {
+                    static_cast<double>(coordinate_info.x_position - this->document_info_.document_origin_x),
+                    static_cast<double>(coordinate_info.y_position - this->document_info_.document_origin_y),
+                    0,
+                    1
+                };
                 const auto xy_transformed = (this->GetTransformationMatrix() * p).hnormalized();
 
+                
                 // ...and project the transformed coordinates onto the projection plane
                 const auto& transformed_and_projected_coordinate = DeskewHelpers::CalculateProjection(
                         this->projection_plane_info_,
                         xy_transformed);
+                
+               //Eigen::Vector2d transformed_and_projected_coordinate{ xy_transformed(0), xy_transformed(1) };
 
                 libCZI::CDimCoordinate coord = coordinate_info.coordinate;
                 coord.Set(DimensionIndex::Z, static_cast<int>(z));
