@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 Carl Zeiss Microscopy GmbH
+// SPDX-FileCopyrightText: 2025 Carl Zeiss Microscopy GmbH
 //
 // SPDX-License-Identifier: MIT
 
@@ -29,13 +29,13 @@ TEST(XYCoordinateTests, TestCase1)
 
     Eigen::Matrix4d transformation_matrix = DeskewHelpers::GetTransformationMatrixSoThatEdgePointIsAtOrigin(OperationType::CoverGlassTransformAndXYRotated, document_info);
 
-    /* Note: Here we cheat by passing the coordinate of the point we know is going to be at the origin. This allows us
-             to compare against zero-aligned coordinates. */
+    // Note: Here we cheat by passing the coordinate of the point we know is going to be at the origin. This allows us
+    //        to compare against zero-aligned coordinates.
     const auto projection_plane = DeskewHelpers::CalculateProjectionPlane(transformation_matrix, Eigen::Vector3d(0, 2988, 0));
 
     static array<tuple<Eigen::Vector2d, Eigen::Vector2d>, 3>  points =
     {
-        make_tuple(Eigen::Vector2d(0, 2988),Eigen::Vector2d(0, 0)),
+        make_tuple(Eigen::Vector2d(0, 2988), Eigen::Vector2d(0, 0)),
         make_tuple(Eigen::Vector2d(136, 0), Eigen::Vector2d(2988, 136)),
         make_tuple(Eigen::Vector2d(1843, 2988), Eigen::Vector2d(0, 1843)),
     };
