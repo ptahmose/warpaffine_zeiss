@@ -382,8 +382,6 @@ void DoWarp::ProcessBrickCommon2(const Brick& brick, uint32_t brick_id, const Br
                         this->projection_plane_info_,
                         xy_transformed);
                 
-               //Eigen::Vector2d transformed_and_projected_coordinate{ xy_transformed(0), xy_transformed(1) };
-
                 libCZI::CDimCoordinate coord = coordinate_info.coordinate;
                 coord.Set(DimensionIndex::Z, static_cast<int>(z));
                 SubblockXYM xym;
