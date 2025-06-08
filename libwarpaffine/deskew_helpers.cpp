@@ -306,7 +306,7 @@ using namespace std;
 }
 
 
-/*static*/DeskewHelpers::ProjectionPlaneInfo DeskewHelpers::CalculateProjectionPlane(const Eigen::Matrix4d& transformation_matrix, const Eigen::Vector3d& edge_point)
+/*static*/DeskewHelpers::ProjectionPlaneInfo DeskewHelpers::CalculateProjectionPlane(const Eigen::Matrix4d& transformation_matrix, const Eigen::Vector3d& source_origin_point)
 {
     const Eigen::Vector4d origin_point = Eigen::Vector4d::Zero();
     const Eigen::Vector4d x_direction_point = origin_point + Eigen::Vector4d{ 1, 0, 0, 0 };
@@ -325,7 +325,7 @@ using namespace std;
     ProjectionPlaneInfo projection_plane_info;
     projection_plane_info.x_axis = v1.normalized(); // new local X - axis (in - plane "down")
     projection_plane_info.y_axis = normal.cross(projection_plane_info.x_axis).normalized(); // new local Y - axis (in - plane "right")
-    projection_plane_info.origin = (transformation_matrix * edge_point.homogeneous()).hnormalized(); // origin of the projection plane
+    projection_plane_info.origin = (transformation_matrix* source_origin_point.homogeneous()).hnormalized(); // origin of the projection plane
 
     return projection_plane_info;
 }

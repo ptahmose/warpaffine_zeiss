@@ -184,22 +184,7 @@ DoWarp::DoWarp(
     this->output_depth_ = static_cast<uint32_t>(round(extent(2)));
 
     // calculate the projection plane
-    /*
-    Eigen::Vector4d origin_point = edge_point.homogeneous();
-    Eigen::Vector4d x_direction_point = origin_point + Eigen::Vector4d{ 1, 0, 0, 0 };
-    Eigen::Vector4d y_direction_point = origin_point + Eigen::Vector4d{ 0, -1, 0, 0 };
-    // transform the basis points
-    auto transformed_origin = transformation_matrix_ * origin_point;
-    auto transformed_x_direction = transformation_matrix_ * x_direction_point;
-    auto transformed_y_direction = transformation_matrix_ * y_direction_point;
-    // construct the projection plane
-    auto v1 = (transformed_y_direction - transformed_origin).head<3>(); // local Y - direction
-    auto v2 = (transformed_x_direction - transformed_origin).head<3>(); // local X - direction
-    auto normal = v1.cross(v2).normalized(); // normal vector of the projection plane
-    this->projection_plane_info_.x_axis = v1.normalized(); // new local X - axis (in - plane "down")
-    this->projection_plane_info_.y_axis = normal.cross(this->projection_plane_info_.x_axis).normalized(); // new local Y - axis (in - plane "right")
-    */
-    this->projection_plane_info_ = DeskewHelpers::CalculateProjectionPlane(transformation_matrix, edge_point);
+    this->projection_plane_info_ = DeskewHelpers::CalculateProjectionPlane(transformation_matrix);
 
     this->total_number_of_subblocks_to_output = this->output_brick_info_repository_.GetTotalNumberOfSubblocksToOutput() * number_of_3dplanes_to_process;
 
