@@ -174,7 +174,7 @@ DoWarp::DoWarp(
 {
     // Note: 
     // We only deal with the width/height/depth of the output-volume, not its "edge-point"; in other words,
-    // we assume that the output-volume is at (0,0,0). This is currently ensure by the preparation of the transformation
+    // we assume that the output-volume is at (0,0,0). This is currently ensured by the preparation of the transformation
     // matrix, but we should extend this in order to deal with "edge point not at the origin".
     Eigen::Vector3d edge_point;
     Eigen::Vector3d extent;
@@ -330,12 +330,12 @@ void DoWarp::InputBrick(const Brick& brick, const BrickCoordinateInfo& coordinat
             TaskType::WarpAffineBrick,
             [
                 this,
-                    brick_captured = brick,
-                    coordinate_info_captured = coordinate_info,
-                    tile_captured = destination_brick_info.tiling[n],
-                    source_cuboid_depth = destination_brick_info.cuboid.depth,
-                    destination_brick_captured = destination_brick,
-                    brick_id_captured = destination_brick_info.brick_id
+                brick_captured = brick,
+                coordinate_info_captured = coordinate_info,
+                tile_captured = destination_brick_info.tiling[n],
+                source_cuboid_depth = destination_brick_info.cuboid.depth,
+                destination_brick_captured = destination_brick,
+                brick_id_captured = destination_brick_info.brick_id
             ]()->void
             {
                 this->ProcessBrickCommon2(brick_captured, brick_id_captured, destination_brick_captured, coordinate_info_captured, source_cuboid_depth, tile_captured);
@@ -361,7 +361,7 @@ void DoWarp::ProcessBrickCommon2(const Brick& brick, uint32_t brick_id, const Br
         this->IncCompressionTasksInFlight();
         this->context_.GetTaskArena()->AddTask(
             TaskType::CompressSlice,
-            [=]()->void
+            [this, coordinate_info, rect_and_tile_identifier, slice_to_compress_task_info, z, brick_id]()->void
             {
                 Eigen::Vector4d p;
                 p <<

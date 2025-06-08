@@ -26,8 +26,8 @@ using namespace std;
     // - then, we calculate the min and max of the coordinates
     // - and, voilà, there is our axis aligned bounding box
     const Vector4d p1(0, 0, 0, 1);
-    const Vector4d p2(width, 0, 0 , 1);
-    const Vector4d p3(width, height, 0 , 1);
+    const Vector4d p2(width, 0, 0, 1);
+    const Vector4d p3(width, height, 0, 1);
     const Vector4d p4(0, height, 0, 1);
     const Vector4d p5(0, 0, depth, 1);
     const Vector4d p6(width, 0, depth, 1);
@@ -243,7 +243,7 @@ using namespace std;
     result[5] = DoublePos3{ p6_transformed[0], p6_transformed[1], p6_transformed[2] };
     result[6] = DoublePos3{ p7_transformed[0], p7_transformed[1], p7_transformed[2] };
     result[7] = DoublePos3{ p8_transformed[0], p8_transformed[1], p8_transformed[2] };
-    return result;                                                
+    return result;
 }
 
 /*static*/std::array<DoublePos3, 8> DeskewHelpers::TransformEdgePointOfAabb(
@@ -253,19 +253,19 @@ using namespace std;
     Vector4d p1;
     p1 << cuboid.x_position, cuboid.y_position, cuboid.z_position, 1;
     Vector4d p2;
-    p2 << cuboid.x_position + cuboid.width-1, cuboid.y_position, cuboid.z_position, 1;
+    p2 << cuboid.x_position + cuboid.width - 1, cuboid.y_position, cuboid.z_position, 1;
     Vector4d p3;
-    p3 << cuboid.x_position + cuboid.width-1, cuboid.y_position + cuboid.height-1, cuboid.z_position, 1;
+    p3 << cuboid.x_position + cuboid.width - 1, cuboid.y_position + cuboid.height - 1, cuboid.z_position, 1;
     Vector4d p4;
-    p4 << cuboid.x_position, cuboid.y_position + cuboid.height-1, cuboid.z_position, 1;
+    p4 << cuboid.x_position, cuboid.y_position + cuboid.height - 1, cuboid.z_position, 1;
     Vector4d p5;
-    p5 << cuboid.x_position, cuboid.y_position, cuboid.z_position + cuboid.depth-1, 1;
+    p5 << cuboid.x_position, cuboid.y_position, cuboid.z_position + cuboid.depth - 1, 1;
     Vector4d p6;
-    p6 << cuboid.x_position + cuboid.width-1, cuboid.y_position, cuboid.z_position + cuboid.depth-1, 1;
+    p6 << cuboid.x_position + cuboid.width - 1, cuboid.y_position, cuboid.z_position + cuboid.depth - 1, 1;
     Vector4d p7;
-    p7 << cuboid.x_position + cuboid.width-1, cuboid.y_position + cuboid.height-1, cuboid.z_position + cuboid.depth-1, 1;
+    p7 << cuboid.x_position + cuboid.width - 1, cuboid.y_position + cuboid.height - 1, cuboid.z_position + cuboid.depth - 1, 1;
     Vector4d p8;
-    p8 << cuboid.x_position, cuboid.y_position + cuboid.height-1, cuboid.z_position + cuboid.depth-1, 1;
+    p8 << cuboid.x_position, cuboid.y_position + cuboid.height - 1, cuboid.z_position + cuboid.depth - 1, 1;
 
     Vector4d p1_transformed = transformation * p1;
     Vector4d p2_transformed = transformation * p2;

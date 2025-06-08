@@ -23,7 +23,8 @@ add_executable(
  "warpaffine_tests.cpp" 
  "utilities_tests.cpp"
  "utilities.h"
- "utilities.cpp")
+ "utilities.cpp" 
+ "xycoordinate_tests.cpp")
 
 target_include_directories(warpaffine_unittests PRIVATE ${IPP_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${LIBCZI_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_definitions(warpaffine_unittests PRIVATE _LIBCZISTATICLIB)
