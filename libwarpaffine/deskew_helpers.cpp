@@ -320,7 +320,7 @@ using namespace std;
     // construct the projection plane
     const auto v1 = (transformed_y_direction - transformed_origin).head<3>(); // local Y - direction
     const auto v2 = (transformed_x_direction - transformed_origin).head<3>(); // local X - direction
-    auto normal = v1.cross(v2).normalized(); // normal vector of the projection plane
+    const auto normal = v1.cross(v2).normalized(); // normal vector of the projection plane
 
     ProjectionPlaneInfo projection_plane_info;
     projection_plane_info.x_axis = v1.normalized(); // new local X - axis (in - plane "down")
