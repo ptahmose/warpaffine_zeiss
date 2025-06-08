@@ -103,6 +103,12 @@ class DoWarp
         static std::vector<libCZI::IntRect> Create2dTiling(std::uint32_t max_extent, const libCZI::IntRect& rectangle);
     };
 
+    struct ProjectionPlaneInfo
+    {
+        Eigen::Vector3d x_axis; ///< The x-axis of the projection plane.
+        Eigen::Vector3d y_axis; ///< The y-axis of the projection plane.
+    };
+
     AppContext& context_;
     Eigen::Matrix4d transformation_matrix_;
     DeskewDocumentInfo document_info_;
@@ -114,6 +120,7 @@ class DoWarp
 
     std::chrono::time_point<std::chrono::high_resolution_clock> time_point_operation_started_;
 
+    ProjectionPlaneInfo projection_plane_info_; ///< This contains the information about the projection plane
     std::uint32_t output_width_;
     std::uint32_t output_height_;
     std::uint32_t output_depth_;
