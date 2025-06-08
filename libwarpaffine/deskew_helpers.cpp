@@ -300,6 +300,43 @@ using namespace std;
     return integer_cuboid;
 }
 
-/*static*/double DeskewHelpers::OrthogonalPlaneDistance(const DeskewDocumentInfo& document_info) {
+/*static*/double DeskewHelpers::OrthogonalPlaneDistance(const DeskewDocumentInfo& document_info)
+{
     return cos(document_info.illumination_angle_in_radians) * document_info.z_scaling;
+}
+
+
+/*static*/DeskewHelpers::ProjectionPlaneInfo DeskewHelpers::CalculateProjectionPlane(const Eigen::Matrix4d& transformation_matrix, const Eigen::Vector3d& edge_point)
+{
+    const Eigen::Vector4d origin_point = Eigen::Vector4d::Zero();
+    const Eigen::Vector4d x_direction_point = origin_point + Eigen::Vector4d{ 1, 0, 0, 0 };
+    const Eigen::Vector4d y_direction_point = origin_point + Eigen::Vector4d{ 0, -1, 0, 0 };
+
+    // transform the basis points
+    const auto transformed_origin = transformation_matrix * origin_point;
+    const auto transformed_x_direction = transformation_matrix * x_direction_point;
+    const auto transformed_y_direction = transformation_matrix * y_direction_point;
+
+    // construct the projection plane
+    const auto v1 = (transformed_y_direction - transformed_origin).head<3>(); // local Y - direction
+    const auto v2 = (transformed_x_direction - transformed_origin).head<3>(); // local X - direction
+    auto normal = v1.cross(v2).normalized(); // normal vector of the projection plane
+
+    ProjectionPlaneInfo projection_plane_info;
+    projection_plane_info.x_axis = v1.normalized(); // new local X - axis (in - plane "down")
+    projection_plane_info.y_axis = normal.cross(projection_plane_info.x_axis).normalized(); // new local Y - axis (in - plane "right")
+    projection_plane_info.origin = (transformation_matrix * edge_point.homogeneous()).hnormalized(); // origin of the projection plane
+
+    return projection_plane_info;
+}
+
+/*static*/Eigen::Vector2d DeskewHelpers::CalculateProjection(const DeskewHelpers::ProjectionPlaneInfo& projection_plane_info, const Eigen::Vector3d& point)
+{
+    const auto point_minus_origin = point - projection_plane_info.origin;
+
+    return Eigen::Vector2d
+        {
+            point_minus_origin.dot(projection_plane_info.x_axis),
+            point_minus_origin.dot(projection_plane_info.y_axis)
+        };
 }

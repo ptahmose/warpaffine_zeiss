@@ -184,6 +184,7 @@ DoWarp::DoWarp(
     this->output_depth_ = static_cast<uint32_t>(round(extent(2)));
 
     // calculate the projection plane
+    /*
     Eigen::Vector4d origin_point = edge_point.homogeneous();
     Eigen::Vector4d x_direction_point = origin_point + Eigen::Vector4d{ 1, 0, 0, 0 };
     Eigen::Vector4d y_direction_point = origin_point + Eigen::Vector4d{ 0, -1, 0, 0 };
@@ -197,6 +198,8 @@ DoWarp::DoWarp(
     auto normal = v1.cross(v2).normalized(); // normal vector of the projection plane
     this->projection_plane_info_.x_axis = v1.normalized(); // new local X - axis (in - plane "down")
     this->projection_plane_info_.y_axis = normal.cross(this->projection_plane_info_.x_axis).normalized(); // new local Y - axis (in - plane "right")
+    */
+    this->projection_plane_info_ = DeskewHelpers::CalculateProjectionPlane(transformation_matrix, edge_point);
 
     this->total_number_of_subblocks_to_output = this->output_brick_info_repository_.GetTotalNumberOfSubblocksToOutput() * number_of_3dplanes_to_process;
 
@@ -378,39 +381,26 @@ void DoWarp::ProcessBrickCommon2(const Brick& brick, uint32_t brick_id, const Br
             TaskType::CompressSlice,
             [this, coordinate_info, rect_and_tile_identifier, slice_to_compress_task_info, z, brick_id]()->void
             {
+                // transform the X-Y-coordinates (from the sub-block)
                 const Eigen::Vector4d p
-                {
-                    static_cast<double>(coordinate_info.x_position - this->document_info_.document_origin_x),
-                    static_cast<double>(coordinate_info.y_position - this->document_info_.document_origin_y),
-                    0,
-                    1
-                };
-
+                    {
+                        static_cast<double>(coordinate_info.x_position - this->document_info_.document_origin_x),
+                        static_cast<double>(coordinate_info.y_position - this->document_info_.document_origin_y),
+                        0,
+                        1
+                    };
                 const auto xy_transformed = (this->GetTransformationMatrix() * p).hnormalized();
 
-                const auto projected_to_plane = Eigen::Vector2d
-                {
-                    xy_transformed.dot(this->projection_plane_info_.x_axis),
-                    xy_transformed.dot(this->projection_plane_info_.y_axis)
-                };
-
-               /* Eigen::Vector4d p;
-                p <<
-                    coordinate_info.x_position - this->document_info_.document_origin_x,
-                    coordinate_info.y_position - this->document_info_.document_origin_y,
-                    0,
-                    1;
-                const auto xy_transformed = this->GetTransformationMatrix() * p;*/
-
-                /*ostringstream ss;
-                ss << "roi=" << roi.x << ", " << roi.y << "; coordinate_info=" << coordinate_info.x_position << ", " << coordinate_info.y_position << "; transformed: " << lround(xy_transformed[0]) << ", " << lround(xy_transformed[1]) << " => " << roi.x + lround(xy_transformed[0]) << ", " << roi.y + lround(xy_transformed[1]) << ".\n";
-                this->context_.WriteDebugString(ss.str().c_str());*/
+                // ...and project the transformed coordinates onto the projection plane
+                const auto& transformed_and_projected_coordinate = DeskewHelpers::CalculateProjection(
+                        this->projection_plane_info_,
+                        xy_transformed);
 
                 libCZI::CDimCoordinate coord = coordinate_info.coordinate;
                 coord.Set(DimensionIndex::Z, static_cast<int>(z));
                 SubblockXYM xym;
-                xym.x_position = rect_and_tile_identifier.rectangle.x + lround(/*xy_transformed[0]*/projected_to_plane.x());
-                xym.y_position = rect_and_tile_identifier.rectangle.y + lround(/*xy_transformed[1]*/projected_to_plane.y());
+                xym.x_position = rect_and_tile_identifier.rectangle.x + lround(transformed_and_projected_coordinate.x());
+                xym.y_position = rect_and_tile_identifier.rectangle.y + lround(transformed_and_projected_coordinate.y());
 
                 // TODO(JBL): we better should use optional for this, not magic values
                 if (Utils::IsValidMindex(rect_and_tile_identifier.m_index))

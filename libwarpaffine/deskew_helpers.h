@@ -19,6 +19,15 @@ public:
     static Eigen::Matrix4d GetTransformationMatrix(OperationType type, const DeskewDocumentInfo& document_info);
     static Eigen::Matrix4d GetTransformationMatrixSoThatEdgePointIsAtOrigin(OperationType type, const DeskewDocumentInfo& document_info);
 
+    /// This gathers information defining a plane. It is used to project points onto this plane, used
+    /// for transforming the X-Y coordinates of the source sub-blocks to the X-Y coordinates of the destination sub-blocks.
+    struct ProjectionPlaneInfo
+    {
+        Eigen::Vector3d x_axis; ///< The x-axis of the projection plane.
+        Eigen::Vector3d y_axis; ///< The y-axis of the projection plane.
+        Eigen::Vector3d origin; ///< The origin of the projection plane.
+    };
+
     /// Calculates an axis-aligned-bounding-box for a cuboid located a (0,0,0) and with
     /// width, height and depth as specified, which is transformed by the specified transformation.
     ///
@@ -89,6 +98,21 @@ public:
     /// Returns the orthogonal distance of the measurement planes from the document info.
     static double OrthogonalPlaneDistance(const DeskewDocumentInfo& document_info);
 
+    /// Calculates the projection plane - this is used to transform the X-Y coordinates of the source sub-blocks to the X-Y coordinates of the destination sub-blocks.
+    ///
+    /// \param  transformation_matrix   The transformation matrix.
+    /// \param  edge_point              Coordinates of a point, which when transformed defines the origin of the projection plane.
+    ///
+    /// \returns    The calculated projection plane.
+    static ProjectionPlaneInfo CalculateProjectionPlane(const Eigen::Matrix4d& transformation_matrix, const Eigen::Vector3d& edge_point);
+
+    /// Calculates the projection onto the projection plane defined by the projection plane info.
+    ///
+    /// \param  projection_plane_info   Information describing the projection plane.
+    /// \param  point                   The point.
+    ///
+    /// \returns    The calculated projection.
+    static Eigen::Vector2d CalculateProjection(const ProjectionPlaneInfo& projection_plane_info, const Eigen::Vector3d& point);
 private:
     static double DegreesToRadians(double angle_in_degrees);
     static double RadiansToDegrees(double angle_in_radians);
