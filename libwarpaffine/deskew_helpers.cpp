@@ -26,8 +26,8 @@ using namespace std;
     // - then, we calculate the min and max of the coordinates
     // - and, voilà, there is our axis aligned bounding box
     const Vector4d p1(0, 0, 0, 1);
-    const Vector4d p2(width, 0, 0 , 1);
-    const Vector4d p3(width, height, 0 , 1);
+    const Vector4d p2(width, 0, 0, 1);
+    const Vector4d p3(width, height, 0, 1);
     const Vector4d p4(0, height, 0, 1);
     const Vector4d p5(0, 0, depth, 1);
     const Vector4d p6(width, 0, depth, 1);
@@ -243,7 +243,7 @@ using namespace std;
     result[5] = DoublePos3{ p6_transformed[0], p6_transformed[1], p6_transformed[2] };
     result[6] = DoublePos3{ p7_transformed[0], p7_transformed[1], p7_transformed[2] };
     result[7] = DoublePos3{ p8_transformed[0], p8_transformed[1], p8_transformed[2] };
-    return result;                                                
+    return result;
 }
 
 /*static*/std::array<DoublePos3, 8> DeskewHelpers::TransformEdgePointOfAabb(
@@ -253,19 +253,19 @@ using namespace std;
     Vector4d p1;
     p1 << cuboid.x_position, cuboid.y_position, cuboid.z_position, 1;
     Vector4d p2;
-    p2 << cuboid.x_position + cuboid.width-1, cuboid.y_position, cuboid.z_position, 1;
+    p2 << cuboid.x_position + cuboid.width - 1, cuboid.y_position, cuboid.z_position, 1;
     Vector4d p3;
-    p3 << cuboid.x_position + cuboid.width-1, cuboid.y_position + cuboid.height-1, cuboid.z_position, 1;
+    p3 << cuboid.x_position + cuboid.width - 1, cuboid.y_position + cuboid.height - 1, cuboid.z_position, 1;
     Vector4d p4;
-    p4 << cuboid.x_position, cuboid.y_position + cuboid.height-1, cuboid.z_position, 1;
+    p4 << cuboid.x_position, cuboid.y_position + cuboid.height - 1, cuboid.z_position, 1;
     Vector4d p5;
-    p5 << cuboid.x_position, cuboid.y_position, cuboid.z_position + cuboid.depth-1, 1;
+    p5 << cuboid.x_position, cuboid.y_position, cuboid.z_position + cuboid.depth - 1, 1;
     Vector4d p6;
-    p6 << cuboid.x_position + cuboid.width-1, cuboid.y_position, cuboid.z_position + cuboid.depth-1, 1;
+    p6 << cuboid.x_position + cuboid.width - 1, cuboid.y_position, cuboid.z_position + cuboid.depth - 1, 1;
     Vector4d p7;
-    p7 << cuboid.x_position + cuboid.width-1, cuboid.y_position + cuboid.height-1, cuboid.z_position + cuboid.depth-1, 1;
+    p7 << cuboid.x_position + cuboid.width - 1, cuboid.y_position + cuboid.height - 1, cuboid.z_position + cuboid.depth - 1, 1;
     Vector4d p8;
-    p8 << cuboid.x_position, cuboid.y_position + cuboid.height-1, cuboid.z_position + cuboid.depth-1, 1;
+    p8 << cuboid.x_position, cuboid.y_position + cuboid.height - 1, cuboid.z_position + cuboid.depth - 1, 1;
 
     Vector4d p1_transformed = transformation * p1;
     Vector4d p2_transformed = transformation * p2;
@@ -300,6 +300,53 @@ using namespace std;
     return integer_cuboid;
 }
 
-/*static*/double DeskewHelpers::OrthogonalPlaneDistance(const DeskewDocumentInfo& document_info) {
+/*static*/double DeskewHelpers::OrthogonalPlaneDistance(const DeskewDocumentInfo& document_info)
+{
     return cos(document_info.illumination_angle_in_radians) * document_info.z_scaling;
+}
+
+/*static*/DeskewHelpers::ProjectionPlaneInfo DeskewHelpers::CalculateProjectionPlane(const Eigen::Matrix4d& transformation_matrix, OperationType operation_type, const Eigen::Vector3d& source_origin_point)
+{
+    const Eigen::Vector4d origin_point = Eigen::Vector4d::Zero();
+
+    // TODO(JBL): maybe it is possible to derive those directions from the transformation
+    Eigen::Vector4d x_direction_point, y_direction_point;
+    if (operation_type == OperationType::CoverGlassTransformAndXYRotated)
+    {
+        x_direction_point = origin_point + Eigen::Vector4d{ 1, 0, 0, 0 };
+        y_direction_point = origin_point + Eigen::Vector4d{ 0, -1, 0, 0 };
+    }
+    else
+    {
+        x_direction_point = origin_point + Eigen::Vector4d{ 0, 1, 0, 0 };
+        y_direction_point = origin_point + Eigen::Vector4d{ 1, 0, 0, 0 };
+    }
+
+    // transform the basis points
+    const auto transformed_origin = transformation_matrix * origin_point;
+    const auto transformed_x_direction = transformation_matrix * x_direction_point;
+    const auto transformed_y_direction = transformation_matrix * y_direction_point;
+
+    // construct the projection plane
+    const auto v1 = (transformed_y_direction - transformed_origin).head<3>(); // local Y - direction
+    const auto v2 = (transformed_x_direction - transformed_origin).head<3>(); // local X - direction
+    const auto normal = v1.cross(v2).normalized(); // normal vector of the projection plane
+
+    ProjectionPlaneInfo projection_plane_info;
+    projection_plane_info.x_axis = v1.normalized(); // new local X - axis (in - plane "down")
+    projection_plane_info.y_axis = normal.cross(projection_plane_info.x_axis).normalized(); // new local Y - axis (in - plane "right")
+    projection_plane_info.origin = (transformation_matrix * source_origin_point.homogeneous()).hnormalized(); // origin of the projection plane
+
+    return projection_plane_info;
+}
+
+/*static*/Eigen::Vector2d DeskewHelpers::CalculateProjection(const DeskewHelpers::ProjectionPlaneInfo& projection_plane_info, const Eigen::Vector3d& point)
+{
+    const auto point_minus_origin = point - projection_plane_info.origin;
+
+    return Eigen::Vector2d
+    {
+        point_minus_origin.dot(projection_plane_info.x_axis),
+        point_minus_origin.dot(projection_plane_info.y_axis)
+    };
 }

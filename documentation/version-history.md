@@ -12,3 +12,4 @@ version history                 {#version_history}
  0.5.2              | [9](https://github.com/ZEISS/warpaffine/pull/9)   | fix z interval metadata for deskew
  0.5.3              | [10](https://github.com/ZEISS/warpaffine/pull/10) | prepare changeable illumination angle
  0.5.4              | [12](https://github.com/ZEISS/warpaffine/pull/12) | update dependencies (libCZI, RapidJSON), fix an off-by-one error with memory-planning/-check
+ 0.5.5              | [14](https://github.com/ZEISS/warpaffine/pull/14) | fix for incorrect X-Y-subblock-coordinates in some cases (esp. for multi-scene documents)

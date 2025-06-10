@@ -174,7 +174,7 @@ DoWarp::DoWarp(
 {
     // Note: 
     // We only deal with the width/height/depth of the output-volume, not its "edge-point"; in other words,
-    // we assume that the output-volume is at (0,0,0). This is currently ensure by the preparation of the transformation
+    // we assume that the output-volume is at (0,0,0). This is currently ensured by the preparation of the transformation
     // matrix, but we should extend this in order to deal with "edge point not at the origin".
     Eigen::Vector3d edge_point;
     Eigen::Vector3d extent;
@@ -182,6 +182,9 @@ DoWarp::DoWarp(
     this->output_width_ = static_cast<uint32_t>(round(extent(0)));
     this->output_height_ = static_cast<uint32_t>(round(extent(1)));
     this->output_depth_ = static_cast<uint32_t>(round(extent(2)));
+
+    // calculate the projection plane
+    this->projection_plane_info_ = DeskewHelpers::CalculateProjectionPlane(transformation_matrix, context.GetCommandLineOptions().GetTypeOfOperation());
 
     this->total_number_of_subblocks_to_output = this->output_brick_info_repository_.GetTotalNumberOfSubblocksToOutput() * number_of_3dplanes_to_process;
 
@@ -330,12 +333,12 @@ void DoWarp::InputBrick(const Brick& brick, const BrickCoordinateInfo& coordinat
             TaskType::WarpAffineBrick,
             [
                 this,
-                    brick_captured = brick,
-                    coordinate_info_captured = coordinate_info,
-                    tile_captured = destination_brick_info.tiling[n],
-                    source_cuboid_depth = destination_brick_info.cuboid.depth,
-                    destination_brick_captured = destination_brick,
-                    brick_id_captured = destination_brick_info.brick_id
+                brick_captured = brick,
+                coordinate_info_captured = coordinate_info,
+                tile_captured = destination_brick_info.tiling[n],
+                source_cuboid_depth = destination_brick_info.cuboid.depth,
+                destination_brick_captured = destination_brick,
+                brick_id_captured = destination_brick_info.brick_id
             ]()->void
             {
                 this->ProcessBrickCommon2(brick_captured, brick_id_captured, destination_brick_captured, coordinate_info_captured, source_cuboid_depth, tile_captured);
@@ -361,25 +364,28 @@ void DoWarp::ProcessBrickCommon2(const Brick& brick, uint32_t brick_id, const Br
         this->IncCompressionTasksInFlight();
         this->context_.GetTaskArena()->AddTask(
             TaskType::CompressSlice,
-            [=]()->void
+            [this, coordinate_info, rect_and_tile_identifier, slice_to_compress_task_info, z, brick_id]()->void
             {
-                Eigen::Vector4d p;
-                p <<
-                    coordinate_info.x_position - this->document_info_.document_origin_x,
-                    coordinate_info.y_position - this->document_info_.document_origin_y,
+                // transform the X-Y-coordinates (from the sub-block)
+                const Eigen::Vector4d p
+                {
+                    static_cast<double>(coordinate_info.x_position - this->document_info_.document_origin_x),
+                    static_cast<double>(coordinate_info.y_position - this->document_info_.document_origin_y),
                     0,
-                    1;
-                const auto xy_transformed = this->GetTransformationMatrix() * p;
-
-                /*ostringstream ss;
-                ss << "roi=" << roi.x << ", " << roi.y << "; coordinate_info=" << coordinate_info.x_position << ", " << coordinate_info.y_position << "; transformed: " << lround(xy_transformed[0]) << ", " << lround(xy_transformed[1]) << " => " << roi.x + lround(xy_transformed[0]) << ", " << roi.y + lround(xy_transformed[1]) << ".\n";
-                this->context_.WriteDebugString(ss.str().c_str());*/
-
+                    1
+                };
+                const auto xy_transformed = (this->GetTransformationMatrix() * p).head<3>();
+                
+                // ...and project the transformed coordinates onto the projection plane
+                const auto& transformed_and_projected_coordinate = DeskewHelpers::CalculateProjection(
+                        this->projection_plane_info_,
+                        xy_transformed);
+                
                 libCZI::CDimCoordinate coord = coordinate_info.coordinate;
-                coord.Set(DimensionIndex::Z, z);
+                coord.Set(DimensionIndex::Z, static_cast<int>(z));
                 SubblockXYM xym;
-                xym.x_position = rect_and_tile_identifier.rectangle.x + lround(xy_transformed[0]);
-                xym.y_position = rect_and_tile_identifier.rectangle.y + lround(xy_transformed[1]);
+                xym.x_position = rect_and_tile_identifier.rectangle.x + lround(transformed_and_projected_coordinate.x());
+                xym.y_position = rect_and_tile_identifier.rectangle.y + lround(transformed_and_projected_coordinate.y());
 
                 // TODO(JBL): we better should use optional for this, not magic values
                 if (Utils::IsValidMindex(rect_and_tile_identifier.m_index))

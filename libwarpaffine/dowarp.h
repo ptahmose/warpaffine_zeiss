@@ -20,6 +20,7 @@
 #include "warpaffine/IWarpAffine.h"
 #include "brickreader/IBrickReader.h"
 #include "BrickAllocator.h"
+#include "deskew_helpers.h"
 
 struct WarpStatistics
 {
@@ -114,6 +115,7 @@ class DoWarp
 
     std::chrono::time_point<std::chrono::high_resolution_clock> time_point_operation_started_;
 
+    DeskewHelpers::ProjectionPlaneInfo projection_plane_info_; ///< This contains the information about the projection plane
     std::uint32_t output_width_;
     std::uint32_t output_height_;
     std::uint32_t output_depth_;
