@@ -7,6 +7,7 @@
 #include <utility>
 #include <memory>
 #include <limits>
+#include <string>
 
 #include "pugixml.hpp"
 
