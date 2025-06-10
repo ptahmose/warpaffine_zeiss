@@ -76,4 +76,6 @@ private:
     /// \param          decode_info     If non-null, information describing the decoding.
     /// \param          rectangle       The rectangle.
     void CopySubblockIntoBrick(const libCZI::SubBlockInfo& subblock_info, int z, libCZI::IBitmapData* bitmap, const BrickDecodeInfo* decode_info, const libCZI::IntRect& rectangle);
+
+    static void GetStagePosition(const BrickDecodeInfo* decode_info, BrickCoordinateInfo* brick_coordinate_info);
 };

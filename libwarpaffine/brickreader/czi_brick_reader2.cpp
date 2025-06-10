@@ -3,10 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 #include "czi_brick_reader2.h"
+
 #include <utility>
 #include <memory>
 #include <limits>
 
+#include "pugixml.hpp"
+
+class CCziMetadata;
 using namespace std;
 using namespace libCZI;
 
@@ -205,6 +209,8 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
                         brick_coordinate_info.x_position = rectangle.x;
                         brick_coordinate_info.y_position = rectangle.y;
 
+                        CziBrickReader2::GetStagePosition(decode_info, &brick_coordinate_info);
+
                         this->deliver_brick_func_(brick, brick_coordinate_info);
                     }
 
@@ -221,6 +227,28 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
                 --this->pending_tasks_count_;
             });
     }
+}
+
+void CziBrickReader2::GetStagePosition(const BrickDecodeInfo* decode_info, BrickCoordinateInfo* brick_coordinate_info)
+{
+    const void* ptr;
+    size_t size;
+    decode_info->subBlock->DangerousGetRawData(ISubBlock::MemBlkType::Metadata, ptr, size);
+    std::string subblockMetadataString(static_cast<const char*>(ptr), size);
+
+    pugi::xml_document doc;
+    std::wstring subblockMetadataWString(subblockMetadataString.begin(), subblockMetadataString.end());
+    pugi::xml_parse_result result = doc.load_string(subblockMetadataWString.c_str());
+    if (result)
+    {
+        auto tagsNode = doc.child(L"METADATA").child(L"Tags");
+        
+        auto stageXNode = tagsNode.child(L"StageXPosition");
+        brick_coordinate_info->stage_x_position = stageXNode.first_child().text().as_double();
+        
+        auto stageYNode = tagsNode.child(L"StageYPosition");
+        brick_coordinate_info->stage_y_position = stageYNode.first_child().text().as_double();;
+    }  
 }
 
 void CziBrickReader2::CopySubblockIntoBrick(const libCZI::SubBlockInfo& subblock_info, int z, libCZI::IBitmapData* bitmap, const BrickDecodeInfo* decode_info, const libCZI::IntRect& rectangle)

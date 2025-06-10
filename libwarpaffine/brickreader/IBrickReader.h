@@ -30,6 +30,8 @@ struct BrickCoordinateInfo
     int scene_index;
     int x_position; ///< The x-position of the top-left point of the brick in the document's pixel-coordinate-system.
     int y_position; ///< The y-position of the top-left point of the brick in the document's pixel-coordinate-system.
+    double stage_x_position;
+    double stage_y_position;
 };
 
 /// This interface is used to abstract "reading from the source". It is representing the source, delivering bricks

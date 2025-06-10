@@ -106,6 +106,8 @@ struct SubblockXYM
 {
     int x_position{ 0 };
     int y_position{ 0 };
+    double stage_x_position{ 0 };
+    double stage_y_position{ 0 };
     std::optional<int> m_index;         ///< The m-index of the subblock.
     std::optional<int> scene_index;     ///< The scene-index of the subblock.
 };
