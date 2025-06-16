@@ -396,26 +396,30 @@ static bool IsCoordinateInBrick(const libCZI::CDimCoordinate& brick_coordinate, 
 {
     map<int, int> map_z_subblockindex;
 
-    czi_reader->EnumerateSubBlocks(
+    // note that we only enumerate layer-0 subblocks here
+    czi_reader->EnumSubset(
+        nullptr,
+        nullptr,
+        true,
         [&](int index, const SubBlockInfo& info)->bool
-        {
-            if (IsCoordinateInBrick(brick_coordinate, tile_identifier, info))
             {
-                // for the time being, we only support/expect to have exactly one subblock per z
-                int z;
-                info.coordinate.TryGetPosition(DimensionIndex::Z, &z);
-                const auto iterator = map_z_subblockindex.insert(pair<int, int>(z, index));
-
-                // c.f. https://cplusplus.com/reference/map/map/insert/ -> the 2nd element is set to true
-                //                                                         if the element was inserted, false if it existed before
-                if (iterator.second != true)
+                if (IsCoordinateInBrick(brick_coordinate, tile_identifier, info))
                 {
-                    throw logic_error("more than one subblock");
-                }
-            }
+                    // for the time being, we only support/expect to have exactly one subblock per z
+                    int z;
+                    info.coordinate.TryGetPosition(DimensionIndex::Z, &z);
+                    const auto iterator = map_z_subblockindex.insert(pair<int, int>(z, index));
 
-            return true;
-        });
+                    // c.f. https://cplusplus.com/reference/map/map/insert/ -> the 2nd element is set to true
+                    //                                                         if the element was inserted, false if it existed before
+                    if (iterator.second != true)
+                    {
+                        throw logic_error("more than one subblock");
+                    }
+                }
+
+                return true;
+            });
 
     return map_z_subblockindex;
 }
