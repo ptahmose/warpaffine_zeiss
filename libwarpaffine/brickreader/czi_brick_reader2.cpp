@@ -210,7 +210,9 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
                         brick_coordinate_info.x_position = rectangle.x;
                         brick_coordinate_info.y_position = rectangle.y;
 
-                        CziBrickReader2::GetStagePosition(decode_info, &brick_coordinate_info);
+                        // we use an arbitrary sub-block (the one which happened to be the last one loaded) in order to add
+                        //  information retrieved from sub-block-metadata
+                        CziBrickReaderBase::FillOutInformationFromSubBlockMetadata(decode_info->subBlock.get(), &brick_coordinate_info);
 
                         this->deliver_brick_func_(brick, brick_coordinate_info);
                     }
@@ -228,49 +230,6 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
                 --this->pending_tasks_count_;
             });
     }
-}
-
-void CziBrickReader2::GetStagePosition(const BrickDecodeInfo* decode_info, BrickCoordinateInfo* brick_coordinate_info)
-{
-    const auto stage_position = CziHelpers::GetStagePositionFromXmlMetadata(decode_info->subBlock.get());
-    //const void* ptr;
-    //size_t size;
-    //decode_info->subBlock->DangerousGetRawData(ISubBlock::MemBlkType::Metadata, ptr, size);
-    //pugi::xml_document doc;
-    //pugi::xml_parse_result result = doc.load_buffer(ptr, size);
-    //if (result)
-    //{
-    //    auto tags_node = doc.first_element_by_path("METADATA/Tags");
-    //    if (!tags_node)
-    //    {
-    //        // no tags node, we cannot get the stage position
-    //        return;
-    //    }
-
-    //    auto stage_position_x_node = tags_node.child("StageXPosition");
-    //    if (!stage_position_x_node)
-    //    {
-    //        // no stage x position, we cannot get the stage position
-    //        return;
-    //    }
-
-    //    auto stage_position_y_node = tags_node.child("StageYPosition");
-    //    if (!stage_position_y_node)
-    //    {
-    //        // no stage y position, we cannot get the stage position
-    //        return;
-    //    }
-
-    //    // TODO(JBL): valid the node's text whether it is a valid number
-
-    //    auto tagsNode = doc.child(L"METADATA").child(L"Tags");
-    //    
-    //    auto stageXNode = tagsNode.child(L"StageXPosition");
-    //    brick_coordinate_info->stage_x_position = stageXNode.first_child().text().as_double();
-    //    
-    //    auto stageYNode = tagsNode.child(L"StageYPosition");
-    //    brick_coordinate_info->stage_y_position = stageYNode.first_child().text().as_double();;
-    //}  
 }
 
 void CziBrickReader2::CopySubblockIntoBrick(const libCZI::SubBlockInfo& subblock_info, int z, libCZI::IBitmapData* bitmap, const BrickDecodeInfo* decode_info, const libCZI::IntRect& rectangle)

@@ -204,5 +204,5 @@ public:
     /// \returns True if the document is marked as a "skewed LLS-acquisition"; false otherwise.
     static bool CheckWhetherDocumentIsMarkedAsSkewedInMetadata(const std::shared_ptr<libCZI::ICziMetadata>& metadata);
 
-    static std::tuple<double, double> GetStagePositionFromXmlMetadata(libCZI::ISubBlock* sub_block);
+    static std::tuple<double, double> GetStagePositionFromXmlMetadata(const libCZI::ISubBlock* sub_block);
 };

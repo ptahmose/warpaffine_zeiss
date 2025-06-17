@@ -442,7 +442,7 @@ static bool IsCoordinateInBrick(const libCZI::CDimCoordinate& brick_coordinate, 
     return false;
 }
 
-/*static*/std::tuple<double, double> CziHelpers::GetStagePositionFromXmlMetadata(libCZI::ISubBlock* sub_block)
+/*static*/std::tuple<double, double> CziHelpers::GetStagePositionFromXmlMetadata(const libCZI::ISubBlock* sub_block)
 {
     /*const void* ptr;
     size_t size;

@@ -30,8 +30,10 @@ struct BrickCoordinateInfo
     int scene_index;
     int x_position; ///< The x-position of the top-left point of the brick in the document's pixel-coordinate-system.
     int y_position; ///< The y-position of the top-left point of the brick in the document's pixel-coordinate-system.
-    double stage_x_position;
-    double stage_y_position;
+    double stage_x_position;    ///< This comes from the subblock-XML-metadata of an arbitrary subblock in the brick, and it this the content of the element
+                                ///< "METADATA/Tags/StageXPosition". If not present or not found, this has the value numerical_limits<double>::quiet_NaN().
+    double stage_y_position;    ///< This comes from the subblock-XML-metadata of an arbitrary subblock in the brick, and it this the content of the element
+                                ///< "METADATA/Tags/StageYPosition". If not present or not found, this has the value numerical_limits<double>::quiet_NaN().
 };
 
 /// This interface is used to abstract "reading from the source". It is representing the source, delivering bricks
