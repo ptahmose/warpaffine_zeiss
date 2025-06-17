@@ -9,6 +9,9 @@
 #include <map>
 #include <utility>
 
+//#include <pugixml.hpp>
+#include <tinyxml2.h>
+
 using namespace std;
 using namespace libCZI;
 
@@ -433,4 +436,82 @@ static bool IsCoordinateInBrick(const libCZI::CDimCoordinate& brick_coordinate, 
     }
 
     return false;
+}
+
+/*static*/std::tuple<double, double> GetStagePositionFromXmlMetadata(libCZI::ISubBlock* sub_block)
+{
+    /*const void* ptr;
+    size_t size;
+    sub_block->DangerousGetRawData(ISubBlock::MemBlkType::Metadata, ptr, size);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_buffer(ptr, size);
+    
+    double stageX = numeric_limits<double>::quiet_NaN();
+    double stageY = numeric_limits<double>::quiet_NaN();
+
+    if (result)
+    {
+        auto tags_node = doc.first_element_by_path("METADATA/Tags");
+        if (tags_node)
+        {
+            auto stage_position_x_node = tags_node.child("StageXPosition");
+            if (stage_position_x_node)
+            {
+                stageX = stage_position_x_node.first_child().text().as_double();
+            }
+            
+            auto stage_position_y_node = tags_node.child("StageYPosition");
+            if (stage_position_y_node)
+            {
+                stageY = stage_position_y_node.first_child().text().as_double();
+            }
+        }
+    }
+
+    if (isnan(stageX) || isnan(stageY) || isinf(stageX) || isinf(stageY))
+    {
+        stageX = stageY = numeric_limits<double>::quiet_NaN();
+    }
+
+    return std::make_tuple(stageX, stageY);*/
+    const void* ptr;
+    size_t size;
+    sub_block->DangerousGetRawData(libCZI::ISubBlock::MemBlkType::Metadata, ptr, size);
+
+    tinyxml2::XMLDocument doc;
+    tinyxml2::XMLError result = doc.Parse(static_cast<const char*>(ptr), size);
+
+    double stageX = std::numeric_limits<double>::quiet_NaN();
+    double stageY = std::numeric_limits<double>::quiet_NaN();
+
+    if (result == tinyxml2::XML_SUCCESS)
+    {
+        // Navigate to METADATA/Tags
+        tinyxml2::XMLElement* metadata = doc.FirstChildElement("METADATA");
+        if (metadata)
+        {
+            tinyxml2::XMLElement* tags = metadata->FirstChildElement("Tags");
+            if (tags)
+            {
+                tinyxml2::XMLElement* xElem = tags->FirstChildElement("StageXPosition");
+                if (xElem && xElem->GetText())
+                {
+                    stageX = std::strtod(xElem->GetText(), nullptr);
+                }
+
+                tinyxml2::XMLElement* yElem = tags->FirstChildElement("StageYPosition");
+                if (yElem && yElem->GetText())
+                {
+                    stageY = std::strtod(yElem->GetText(), nullptr);
+                }
+            }
+        }
+    }
+
+    if (std::isnan(stageX) || std::isnan(stageY) || std::isinf(stageX) || std::isinf(stageY))
+    {
+        stageX = stageY = std::numeric_limits<double>::quiet_NaN();
+    }
+
+    return std::make_tuple(stageX, stageY);
 }

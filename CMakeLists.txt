@@ -36,6 +36,10 @@ option(WARPAFFINE_USE_PRIVATE_EIGEN3 "Eigen3 is downloaded as part of the build 
 #  copy of RapidJSON during the CMake-run.
 option(WARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON "Prefer an RapidJSON-package present on the system" OFF)
 
+
+option(WARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_PUGIXML "Prefer an PugiXML-package present on the system" ON)
+
+
 if (WARPAFFINE_BUILD_CLANGTIDY)
   # How "clang-tidy" organization works (if this option is enable here):
   # - the compiler is looking for a ".clang-tidy"-file (containing configuration) in the parent folder of each compilation unit
@@ -134,6 +138,40 @@ else()
 
     set(RAPIDJSON_INCLUDE_DIRS ${rapidjson_SOURCE_DIR}/include)
 endif()
+
+#[[
+if (WARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_PUGIXML)
+  find_package(pugixml CONFIG REQUIRED)
+else()
+  # Since "pugixml" is a header-only library, we just have to download it and point to the include directory
+  FetchContent_Declare(
+    pugixml
+    GIT_REPOSITORY https://github.com/zeux/pugixml
+    GIT_TAG        v1.15
+    GIT_SHALLOW    TRUE
+    PREFIX "${CMAKE_BINARY_DIR}/vendor/pugixml"
+    )
+
+  FetchContent_MakeAvailable(pugixml)
+  FetchContent_GetProperties(pugixml)
+  if(NOT pugixml_POPULATED)
+    FetchContent_Populate(pugixml)
+  endif()
+
+  # Set include path explicitly
+  set(pugixml_SOURCE_DIR "${pugixml_SOURCE_DIR}/src")
+  message(STATUS "************************: ${pugixml_SOURCE_DIR}")
+endif()
+#]]
+FetchContent_Declare(
+  tinyxml2
+  GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
+  GIT_TAG        11.0.0 
+  GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(tinyxml2)
+
 
 include("${CMAKE_SOURCE_DIR}/modules/CheckForLibAtomicRequired.cmake")
 CheckForAdditionalLibsRequiredForAtomic(ADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC)

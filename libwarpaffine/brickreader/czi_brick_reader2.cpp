@@ -9,7 +9,7 @@
 #include <limits>
 #include <string>
 
-#include "pugixml.hpp"
+#include <pugixml.hpp>
 
 class CCziMetadata;
 using namespace std;
@@ -232,24 +232,44 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
 
 void CziBrickReader2::GetStagePosition(const BrickDecodeInfo* decode_info, BrickCoordinateInfo* brick_coordinate_info)
 {
-    const void* ptr;
-    size_t size;
-    decode_info->subBlock->DangerousGetRawData(ISubBlock::MemBlkType::Metadata, ptr, size);
-    std::string subblockMetadataString(static_cast<const char*>(ptr), size);
+    //const void* ptr;
+    //size_t size;
+    //decode_info->subBlock->DangerousGetRawData(ISubBlock::MemBlkType::Metadata, ptr, size);
+    //pugi::xml_document doc;
+    //pugi::xml_parse_result result = doc.load_buffer(ptr, size);
+    //if (result)
+    //{
+    //    auto tags_node = doc.first_element_by_path("METADATA/Tags");
+    //    if (!tags_node)
+    //    {
+    //        // no tags node, we cannot get the stage position
+    //        return;
+    //    }
 
-    pugi::xml_document doc;
-    std::wstring subblockMetadataWString(subblockMetadataString.begin(), subblockMetadataString.end());
-    pugi::xml_parse_result result = doc.load_string(subblockMetadataWString.c_str());
-    if (result)
-    {
-        auto tagsNode = doc.child(L"METADATA").child(L"Tags");
-        
-        auto stageXNode = tagsNode.child(L"StageXPosition");
-        brick_coordinate_info->stage_x_position = stageXNode.first_child().text().as_double();
-        
-        auto stageYNode = tagsNode.child(L"StageYPosition");
-        brick_coordinate_info->stage_y_position = stageYNode.first_child().text().as_double();;
-    }  
+    //    auto stage_position_x_node = tags_node.child("StageXPosition");
+    //    if (!stage_position_x_node)
+    //    {
+    //        // no stage x position, we cannot get the stage position
+    //        return;
+    //    }
+
+    //    auto stage_position_y_node = tags_node.child("StageYPosition");
+    //    if (!stage_position_y_node)
+    //    {
+    //        // no stage y position, we cannot get the stage position
+    //        return;
+    //    }
+
+    //    // TODO(JBL): valid the node's text whether it is a valid number
+
+    //    auto tagsNode = doc.child(L"METADATA").child(L"Tags");
+    //    
+    //    auto stageXNode = tagsNode.child(L"StageXPosition");
+    //    brick_coordinate_info->stage_x_position = stageXNode.first_child().text().as_double();
+    //    
+    //    auto stageYNode = tagsNode.child(L"StageYPosition");
+    //    brick_coordinate_info->stage_y_position = stageYNode.first_child().text().as_double();;
+    //}  
 }
 
 void CziBrickReader2::CopySubblockIntoBrick(const libCZI::SubBlockInfo& subblock_info, int z, libCZI::IBitmapData* bitmap, const BrickDecodeInfo* decode_info, const libCZI::IntRect& rectangle)

@@ -6,6 +6,7 @@
 
 #include "../czi_helpers.h"
 #include "../inc_libCZI.h"
+#include "IBrickReader.h"
 #include "../appcontext.h"
 #include <map>
 #include <memory>
@@ -47,4 +48,6 @@ public:
     {
         return this->map_channelno_to_pixeltype_[c];
     }
+
+    static bool FillOutInformationFromSubBlockMetadata(libCZI::ISubBlock* sub_block, BrickCoordinateInfo* brick_coordinate_info);
 };

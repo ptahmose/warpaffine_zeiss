@@ -12,7 +12,8 @@
 
 #include <tbb/concurrent_queue.h>
 
-#include "pugixml.hpp"
+//#include "pugixml.hpp"
+#include <tinyxml2.h>
 
 /// Implementation of a ICziSlicesWriter that uses a MPSC-queue to serialize the slice-write operations.
 /// The actual CZI-writing is handled by libCZI.
@@ -51,7 +52,7 @@ public:
 private:
     void WriteWorker();
     void CopyMetadata(libCZI::IXmlNodeRead* rootSource, libCZI::IXmlNodeRw* rootDestination);
-    void AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, pugi::xml_node& tagsNode) const;
+    void AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, /*pugi::xml_node& */tinyxml2::XMLNode& tagsNode) const;
     libCZI::GUID CreateRetilingIdWithZAndSlice(int z, std::uint32_t slice) const;
-    static void AddStagePosition(const SubBlockWriteInfo2& sub_block_write_info, pugi::xml_node& tagsNode);
+    static void AddStagePosition(const SubBlockWriteInfo2& sub_block_write_info, /*pugi::xml_node&*/tinyxml2::XMLNode& tagsNode);
 };
