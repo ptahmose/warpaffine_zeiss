@@ -14,6 +14,7 @@
 #include <optional>
 #include <iostream>
 #include <limits>
+#include <tuple>
 
 /// This struct gather the information to uniquely identify a tile (and a brick) in a plane. If it is composed
 /// of the m-index and the scene-index.

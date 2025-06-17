@@ -232,6 +232,7 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
 
 void CziBrickReader2::GetStagePosition(const BrickDecodeInfo* decode_info, BrickCoordinateInfo* brick_coordinate_info)
 {
+    const auto stage_position = CziHelpers::GetStagePositionFromXmlMetadata(decode_info->subBlock.get());
     //const void* ptr;
     //size_t size;
     //decode_info->subBlock->DangerousGetRawData(ISubBlock::MemBlkType::Metadata, ptr, size);
