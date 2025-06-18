@@ -8,11 +8,40 @@
 #include <limits>
 #include <map>
 #include <utility>
+#include <charconv>
 
 #include <tinyxml2.h>
 
 using namespace std;
 using namespace libCZI;
+
+namespace 
+{
+    /// Attempts to robustly parse a double from the given data, returning an empty optional if parsing fails.
+    ///
+    /// \param  text    The text to parse.
+    ///
+    /// \returns    A std::optional&lt;double&gt;
+    optional<double> TryParseDouble(const char* text)
+    {
+        if (!text || *text == '\0')
+        {
+            return std::nullopt;
+        }
+
+        double result;
+        const char* begin = text;
+        const char* end = text + std::strlen(text);
+
+        auto [ptr, ec] = std::from_chars(begin, end, result);
+        if (ec != std::errc() || ptr != end) 
+        {
+            return std::nullopt; // Failed parse or trailing characters
+        }
+
+        return result;
+    }
+}
 
 /*static*/DeskewDocumentInfo CziHelpers::GetDocumentInfo(libCZI::ICZIReader* czi_reader)
 {
@@ -467,13 +496,21 @@ static bool IsCoordinateInBrick(const libCZI::CDimCoordinate& brick_coordinate, 
                     tinyxml2::XMLElement* xElem = tags->FirstChildElement("StageXPosition");
                     if (xElem && xElem->GetText())
                     {
-                        stageX = std::strtod(xElem->GetText(), nullptr);
+                        const auto double_value = TryParseDouble(xElem->GetText());
+                        if (double_value.has_value())
+                        {
+                            stageX = double_value.value();
+                        }
                     }
 
                     tinyxml2::XMLElement* yElem = tags->FirstChildElement("StageYPosition");
                     if (yElem && yElem->GetText())
                     {
-                        stageY = std::strtod(yElem->GetText(), nullptr);
+                        const auto double_value = TryParseDouble(xElem->GetText());
+                        if (double_value.has_value())
+                        {
+                            stageX = double_value.value();
+                        }
                     }
                 }
             }
