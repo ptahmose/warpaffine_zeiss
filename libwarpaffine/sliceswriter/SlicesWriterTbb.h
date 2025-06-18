@@ -9,6 +9,7 @@
 #include <memory>
 #include <atomic>
 #include <thread>
+#include <string>
 
 #include <tbb/concurrent_queue.h>
 
