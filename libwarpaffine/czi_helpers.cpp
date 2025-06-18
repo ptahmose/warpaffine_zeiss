@@ -29,17 +29,18 @@ namespace
             return std::nullopt;
         }
 
-        double result;
-        const char* begin = text;
-        const char* end = text + std::strlen(text);
+        char* end_ptr = nullptr;
+        errno = 0;
 
-        auto [ptr, ec] = std::from_chars(begin, end, result);
-        if (ec != std::errc() || ptr != end) 
+        const double value = std::strtod(text, &end_ptr);
+
+        // Check for full consumption and no range errors
+        if (end_ptr == text || *end_ptr != '\0' || errno == ERANGE) 
         {
-            return std::nullopt; // Failed parse or trailing characters
+            return std::nullopt;
         }
 
-        return result;
+        return value;
     }
 }
 
@@ -494,7 +495,7 @@ static bool IsCoordinateInBrick(const libCZI::CDimCoordinate& brick_coordinate, 
                 if (tags)
                 {
                     tinyxml2::XMLElement* xElem = tags->FirstChildElement("StageXPosition");
-                    if (xElem && xElem->GetText())
+                    if (xElem)
                     {
                         const auto double_value = TryParseDouble(xElem->GetText());
                         if (double_value.has_value())
@@ -504,12 +505,12 @@ static bool IsCoordinateInBrick(const libCZI::CDimCoordinate& brick_coordinate, 
                     }
 
                     tinyxml2::XMLElement* yElem = tags->FirstChildElement("StageYPosition");
-                    if (yElem && yElem->GetText())
+                    if (yElem)
                     {
                         const auto double_value = TryParseDouble(xElem->GetText());
                         if (double_value.has_value())
                         {
-                            stageX = double_value.value();
+                            stageY = double_value.value();
                         }
                     }
                 }
