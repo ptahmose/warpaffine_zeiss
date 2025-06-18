@@ -97,22 +97,13 @@ void CziSlicesWriterTbb::WriteWorker()
             add_subblock_info.ptrData = sub_block_write_info.add_slice_info.subblock_raw_data->GetPtr();
             add_subblock_info.dataSize = sub_block_write_info.add_slice_info.subblock_raw_data->GetSizeOfData();
 
-
-          /*  pugi::xml_document doc;
-            auto metadataNode = doc.append_child("METADATA");
-            auto tagsNode = metadataNode.append_child("Tags");            
-            if (sub_block_write_info.add_slice_info.brick_id.has_value() && this->use_acquisition_tiles_)
+            std::string sub_block_metadata = CziSlicesWriterTbb::ConstructSubBlockMetadata(sub_block_write_info);
+            if (!sub_block_metadata.empty())
             {
-                AddRetilingId(sub_block_write_info, tagsNode);
+                add_subblock_info.ptrSbBlkMetadata = sub_block_metadata.c_str();
+                add_subblock_info.sbBlkMetadataSize = static_cast<uint32_t>(sub_block_metadata.size());
             }
-            
-            AddStagePosition(sub_block_write_info, tagsNode);
 
-            std::ostringstream oss;
-            doc.save(oss);
-            const string metadata_xml = oss.str();
-            add_subblock_info.ptrSbBlkMetadata = metadata_xml.c_str();
-            add_subblock_info.sbBlkMetadataSize = static_cast<uint32_t>(metadata_xml.size());*/
             this->writer_->SyncAddSubBlock(add_subblock_info);
 
             --this->number_of_slicewrite_operations_in_flight_;
@@ -144,31 +135,6 @@ void CziSlicesWriterTbb::WriteWorker()
     }
 }
 
-void CziSlicesWriterTbb::AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, /*pugi::xml_node&*/tinyxml2::XMLNode& tagsNode) const
-{
-    int z;
-    sub_block_write_info.add_slice_info.coordinate.TryGetPosition(libCZI::DimensionIndex::Z, &z);
-    auto guid = this->CreateRetilingIdWithZAndSlice(z, sub_block_write_info.add_slice_info.brick_id.value());
-
-    /*tagsNode.append_child("RetilingId");
-    std::ostringstream oss;
-    oss << std::hex << std::uppercase
-        << std::setw(8) << std::setfill('0') << guid.Data1 << '-'
-        << std::setw(4) << std::setfill('0') << guid.Data2 << '-'
-        << std::setw(4) << std::setfill('0') << guid.Data3 << '-'
-        << std::setw(2) << static_cast<uint32_t>(guid.Data4[0])
-        << std::setw(2) << static_cast<uint32_t>(guid.Data4[1]) << '-'
-        << std::setw(2) << static_cast<uint32_t>(guid.Data4[2])
-        << std::setw(2) << static_cast<uint32_t>(guid.Data4[3])
-        << std::setw(2) << static_cast<uint32_t>(guid.Data4[4])
-        << std::setw(2) << static_cast<uint32_t>(guid.Data4[5])
-        << std::setw(2) << static_cast<uint32_t>(guid.Data4[6])
-        << std::setw(2) << static_cast<uint32_t>(guid.Data4[7])
-        << std::dec;
-    
-    tagsNode.text().set(oss.str().c_str());*/
-}
-
 libCZI::GUID CziSlicesWriterTbb::CreateRetilingIdWithZAndSlice(int z, uint32_t slice) const
 {
     libCZI::GUID guid = this-> retilingBaseId_;
@@ -183,15 +149,6 @@ libCZI::GUID CziSlicesWriterTbb::CreateRetilingIdWithZAndSlice(int z, uint32_t s
     guid.Data4[7] = static_cast<uint8_t>(slice);
 
     return guid;
-}
-
-void CziSlicesWriterTbb::AddStagePosition(const SubBlockWriteInfo2& sub_block_write_info, /*pugi::xml_node&*/tinyxml2::XMLNode& tagsNode)
-{
-    /*auto stageXNode = tagsNode.append_child("StageXPosition");    
-    stageXNode.text().set(sub_block_write_info.add_slice_info.stage_x_position);
-
-    auto stageYNode = tagsNode.append_child("StageYPosition");
-    stageYNode.text().set(sub_block_write_info.add_slice_info.stage_y_position);*/
 }
 
 void CziSlicesWriterTbb::Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,
@@ -316,4 +273,67 @@ void CziSlicesWriterTbb::CopyMetadata(libCZI::IXmlNodeRead* rootSource, libCZI::
             }
         }
     }
+}
+
+string CziSlicesWriterTbb::ConstructSubBlockMetadata(const SubBlockWriteInfo2& sub_block_write_info)
+{
+    const bool has_stage_position = !isnan(sub_block_write_info.add_slice_info.stage_x_position) &&
+                                        !isnan(sub_block_write_info.add_slice_info.stage_y_position);
+
+    // do we have information to be put into the metadata?
+    if ((sub_block_write_info.add_slice_info.brick_id.has_value() && this->use_acquisition_tiles_)
+        || has_stage_position)
+    {
+        tinyxml2::XMLDocument doc;
+        auto metadata_node = doc.NewElement("METADATA");
+        doc.InsertFirstChild(metadata_node);
+        auto tags_node = metadata_node->InsertNewChildElement("Tags");
+
+        if (sub_block_write_info.add_slice_info.brick_id.has_value() && this->use_acquisition_tiles_)
+        {
+            auto retilingIdNode = tags_node->InsertNewChildElement("RetilingId");
+            this->AddRetilingId(sub_block_write_info, *retilingIdNode);
+        }
+
+        if (has_stage_position)
+        {
+            tinyxml2::XMLElement* stage_position_node = tags_node->InsertNewChildElement("StageXPosition");
+            stage_position_node->SetText(sub_block_write_info.add_slice_info.stage_x_position);
+            stage_position_node = tags_node->InsertNewChildElement("StageYPosition");
+            stage_position_node->SetText(sub_block_write_info.add_slice_info.stage_y_position);
+        }
+
+        // Configure XMLPrinter: compact, no line breaks or indent
+        tinyxml2::XMLPrinter printer(/*file=*/nullptr, /*compact=*/true);
+        doc.Print(&printer);
+
+        return { printer.CStr(), printer.CStrSize() - 1 }; // exclude null terminator
+    }
+
+    return {}; // return empty string if no metadata is constructed
+}
+
+
+void CziSlicesWriterTbb::AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, /*pugi::xml_node&*/tinyxml2::XMLElement& tagsNode) const
+{
+    int z;
+    sub_block_write_info.add_slice_info.coordinate.TryGetPosition(libCZI::DimensionIndex::Z, &z);
+    auto guid = this->CreateRetilingIdWithZAndSlice(z, sub_block_write_info.add_slice_info.brick_id.value());
+
+    std::ostringstream oss;
+    oss << std::hex << std::uppercase
+        << std::setw(8) << std::setfill('0') << guid.Data1 << '-'
+        << std::setw(4) << std::setfill('0') << guid.Data2 << '-'
+        << std::setw(4) << std::setfill('0') << guid.Data3 << '-'
+        << std::setw(2) << static_cast<uint32_t>(guid.Data4[0])
+        << std::setw(2) << static_cast<uint32_t>(guid.Data4[1]) << '-'
+        << std::setw(2) << static_cast<uint32_t>(guid.Data4[2])
+        << std::setw(2) << static_cast<uint32_t>(guid.Data4[3])
+        << std::setw(2) << static_cast<uint32_t>(guid.Data4[4])
+        << std::setw(2) << static_cast<uint32_t>(guid.Data4[5])
+        << std::setw(2) << static_cast<uint32_t>(guid.Data4[6])
+        << std::setw(2) << static_cast<uint32_t>(guid.Data4[7])
+        << std::dec;
+
+    tagsNode.SetText(oss.str().c_str());
 }

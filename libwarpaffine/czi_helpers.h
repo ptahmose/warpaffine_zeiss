@@ -204,5 +204,13 @@ public:
     /// \returns True if the document is marked as a "skewed LLS-acquisition"; false otherwise.
     static bool CheckWhetherDocumentIsMarkedAsSkewedInMetadata(const std::shared_ptr<libCZI::ICziMetadata>& metadata);
 
+    /// Try to retrieve subblock-metadata from the specified sub-block, and retrieve the stage position from it.
+    /// This function returns a tuple with the x- and y-coordinates of the stage position if successful, in case
+    /// of any problems, a tuple with both coordinates set to NaN is returned.
+    ///
+    /// \param  sub_block   The sub block to retrieve stage-position information from.
+    ///
+    /// \returns    If successful, a tuple with the x- and y-coordinates of the stage position; otherwise, a 
+    ///             tuple with both coordinates set to NaN.
     static std::tuple<double, double> GetStagePositionFromXmlMetadata(const libCZI::ISubBlock* sub_block);
 };

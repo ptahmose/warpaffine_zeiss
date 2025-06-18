@@ -52,7 +52,7 @@ public:
 private:
     void WriteWorker();
     void CopyMetadata(libCZI::IXmlNodeRead* rootSource, libCZI::IXmlNodeRw* rootDestination);
-    void AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, /*pugi::xml_node& */tinyxml2::XMLNode& tagsNode) const;
+    void AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, tinyxml2::XMLElement& tagsNode) const;
     libCZI::GUID CreateRetilingIdWithZAndSlice(int z, std::uint32_t slice) const;
-    static void AddStagePosition(const SubBlockWriteInfo2& sub_block_write_info, /*pugi::xml_node&*/tinyxml2::XMLNode& tagsNode);
+    std::string ConstructSubBlockMetadata(const SubBlockWriteInfo2& sub_block_write_info);
 };
