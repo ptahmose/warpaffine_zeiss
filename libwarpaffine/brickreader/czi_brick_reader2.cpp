@@ -9,7 +9,6 @@
 #include <limits>
 #include <string>
 
-class CCziMetadata;
 using namespace std;
 using namespace libCZI;
 
