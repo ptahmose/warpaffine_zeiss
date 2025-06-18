@@ -154,11 +154,11 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
         coordinate,
         tile_identifier);
 
-/*    
-    ostringstream ss;
-    ss << "DoBrick: " << Utils::DimCoordinateToString(&coordinate) << " " << tile_identifier.ToInformalString() << " -> size=" << map_z_subblockindex.size() << endl;
-    this->GetContextBase().WriteDebugString(ss.str().c_str());
-*/
+    /*
+        ostringstream ss;
+        ss << "DoBrick: " << Utils::DimCoordinateToString(&coordinate) << " " << tile_identifier.ToInformalString() << " -> size=" << map_z_subblockindex.size() << endl;
+        this->GetContextBase().WriteDebugString(ss.str().c_str());
+    */
 
     BrickOutputInfo* brick_output_data = new BrickOutputInfo();
     brick_output_data->max_count = static_cast<int>(map_z_subblockindex.size());
@@ -212,7 +212,7 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
 
                         // we use an arbitrary sub-block (the one which happened to be the last one loaded) in order to add
                         //  information retrieved from sub-block-metadata
-                        CziBrickReaderBase::FillOutInformationFromSubBlockMetadata(decode_info->subBlock.get(), &brick_coordinate_info);
+                        this->FillOutInformationFromSubBlockMetadata(decode_info->subBlock.get(), &brick_coordinate_info);
 
                         this->deliver_brick_func_(brick, brick_coordinate_info);
                     }

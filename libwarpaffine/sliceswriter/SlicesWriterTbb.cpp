@@ -314,11 +314,11 @@ string CziSlicesWriterTbb::ConstructSubBlockMetadata(const SubBlockWriteInfo2& s
 }
 
 
-void CziSlicesWriterTbb::AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, /*pugi::xml_node&*/tinyxml2::XMLElement& tagsNode) const
+void CziSlicesWriterTbb::AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, tinyxml2::XMLElement& tagsNode) const
 {
     int z;
     sub_block_write_info.add_slice_info.coordinate.TryGetPosition(libCZI::DimensionIndex::Z, &z);
-    auto guid = this->CreateRetilingIdWithZAndSlice(z, sub_block_write_info.add_slice_info.brick_id.value());
+    const auto guid = this->CreateRetilingIdWithZAndSlice(z, sub_block_write_info.add_slice_info.brick_id.value());
 
     std::ostringstream oss;
     oss << std::hex << std::uppercase

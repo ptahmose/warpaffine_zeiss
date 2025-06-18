@@ -49,5 +49,5 @@ public:
         return this->map_channelno_to_pixeltype_[c];
     }
 
-    static void FillOutInformationFromSubBlockMetadata(const libCZI::ISubBlock* sub_block, BrickCoordinateInfo* brick_coordinate_info);
+    void FillOutInformationFromSubBlockMetadata(const libCZI::ISubBlock* sub_block, BrickCoordinateInfo* brick_coordinate_info);
 };

@@ -3,12 +3,20 @@
 // SPDX-License-Identifier: MIT
 
 #include "czi_brick_reader_base.h"
+#include <limits>
 
 using namespace std;
 
 /*static */void CziBrickReaderBase::FillOutInformationFromSubBlockMetadata(const libCZI::ISubBlock* sub_block, BrickCoordinateInfo* brick_coordinate_info)
 {
-    const auto stage_position = CziHelpers::GetStagePositionFromXmlMetadata(sub_block);
-    brick_coordinate_info->stage_x_position = get<0>(stage_position);
-    brick_coordinate_info->stage_y_position = get<1>(stage_position);
+    if (this->GetContextBase().GetCommandLineOptions().GetWriteStagePositionsInSubblockMetadata())
+    {
+        const auto stage_position = CziHelpers::GetStagePositionFromXmlMetadata(sub_block);
+        brick_coordinate_info->stage_x_position = get<0>(stage_position);
+        brick_coordinate_info->stage_y_position = get<1>(stage_position);
+    }
+    else
+    {
+        brick_coordinate_info->stage_x_position = brick_coordinate_info->stage_y_position = numeric_limits<double>::quiet_NaN();
+    }
 }

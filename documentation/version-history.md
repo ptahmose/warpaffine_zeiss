@@ -14,3 +14,4 @@ version history                 {#version_history}
  0.5.4              | [12](https://github.com/ZEISS/warpaffine/pull/12) | update dependencies (libCZI, RapidJSON), fix an off-by-one error with memory-planning/-check
  0.5.5              | [14](https://github.com/ZEISS/warpaffine/pull/14) | fix for incorrect X-Y-subblock-coordinates in some cases (esp. for multi-scene documents)
  0.5.6              | [16](https://github.com/ZEISS/warpaffine/pull/16) | fix for malfunction if source document contains a pyramid
+ 0.6.0              | [17](https://github.com/ZEISS/warpaffine/pull/17) | add functionality to copy stage-position metadata from source document

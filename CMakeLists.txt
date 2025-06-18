@@ -19,7 +19,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules" ${CMAKE_MODULE_PATH})
 
 project ("warpaffine"
-          VERSION 0.5.6
+          VERSION 0.6.0
           DESCRIPTION "experimental Deskew operation")
 
 option(WARPAFFINE_BUILD_CLANGTIDY "Build with Clang-Tidy" OFF)
@@ -35,9 +35,6 @@ option(WARPAFFINE_USE_PRIVATE_EIGEN3 "Eigen3 is downloaded as part of the build 
 # When this option is ON, we try to use an existing RapidJSON-library. Otherwise, we download a private
 #  copy of RapidJSON during the CMake-run.
 option(WARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON "Prefer an RapidJSON-package present on the system" OFF)
-
-
-option(WARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_PUGIXML "Prefer an PugiXML-package present on the system" ON)
 
 
 if (WARPAFFINE_BUILD_CLANGTIDY)
@@ -139,30 +136,7 @@ else()
     set(RAPIDJSON_INCLUDE_DIRS ${rapidjson_SOURCE_DIR}/include)
 endif()
 
-#[[
-if (WARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_PUGIXML)
-  find_package(pugixml CONFIG REQUIRED)
-else()
-  # Since "pugixml" is a header-only library, we just have to download it and point to the include directory
-  FetchContent_Declare(
-    pugixml
-    GIT_REPOSITORY https://github.com/zeux/pugixml
-    GIT_TAG        v1.15
-    GIT_SHALLOW    TRUE
-    PREFIX "${CMAKE_BINARY_DIR}/vendor/pugixml"
-    )
-
-  FetchContent_MakeAvailable(pugixml)
-  FetchContent_GetProperties(pugixml)
-  if(NOT pugixml_POPULATED)
-    FetchContent_Populate(pugixml)
-  endif()
-
-  # Set include path explicitly
-  set(pugixml_SOURCE_DIR "${pugixml_SOURCE_DIR}/src")
-  message(STATUS "************************: ${pugixml_SOURCE_DIR}")
-endif()
-#]]
+# pull int tinyxml2 as a dependency
 FetchContent_Declare(
   tinyxml2
   GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
