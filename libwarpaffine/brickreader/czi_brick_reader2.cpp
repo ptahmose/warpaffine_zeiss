@@ -9,8 +9,6 @@
 #include <limits>
 #include <string>
 
-#include <pugixml.hpp>
-
 class CCziMetadata;
 using namespace std;
 using namespace libCZI;

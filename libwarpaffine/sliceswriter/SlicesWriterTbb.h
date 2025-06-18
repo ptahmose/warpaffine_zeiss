@@ -12,7 +12,6 @@
 
 #include <tbb/concurrent_queue.h>
 
-//#include "pugixml.hpp"
 #include <tinyxml2.h>
 
 /// Implementation of a ICziSlicesWriter that uses a MPSC-queue to serialize the slice-write operations.
