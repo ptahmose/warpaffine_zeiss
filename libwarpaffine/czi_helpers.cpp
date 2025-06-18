@@ -507,7 +507,7 @@ static bool IsCoordinateInBrick(const libCZI::CDimCoordinate& brick_coordinate, 
                     tinyxml2::XMLElement* yElem = tags->FirstChildElement("StageYPosition");
                     if (yElem)
                     {
-                        const auto double_value = TryParseDouble(xElem->GetText());
+                        const auto double_value = TryParseDouble(yElem->GetText());
                         if (double_value.has_value())
                         {
                             stageY = double_value.value();
