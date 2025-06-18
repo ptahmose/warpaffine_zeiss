@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <optional>
+#include <limits>
 
 /// A point with integer coordinates in 3D.
 struct IntPos3
@@ -101,11 +102,14 @@ struct DoubleCuboid
 };
 
 /// This structure describes a subblock's x- and y-position together with its M-index and scene-index
-/// (where both M- and scene-index may be invalid).
+/// (where both M- and scene-index may be invalid). Optionally, the stage position can be given
+/// as well.
 struct SubblockXYM
 {
     int x_position{ 0 };
     int y_position{ 0 };
+    double stage_x_position{ std::numeric_limits<double>::quiet_NaN() };
+    double stage_y_position{ std::numeric_limits<double>::quiet_NaN() };
     std::optional<int> m_index;         ///< The m-index of the subblock.
     std::optional<int> scene_index;     ///< The scene-index of the subblock.
 };

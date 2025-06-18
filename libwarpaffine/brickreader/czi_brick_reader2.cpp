@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: MIT
 
 #include "czi_brick_reader2.h"
+
 #include <utility>
 #include <memory>
 #include <limits>
+#include <string>
 
 using namespace std;
 using namespace libCZI;
@@ -149,11 +151,11 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
         coordinate,
         tile_identifier);
 
-/*    
-    ostringstream ss;
-    ss << "DoBrick: " << Utils::DimCoordinateToString(&coordinate) << " " << tile_identifier.ToInformalString() << " -> size=" << map_z_subblockindex.size() << endl;
-    this->GetContextBase().WriteDebugString(ss.str().c_str());
-*/
+    /*
+        ostringstream ss;
+        ss << "DoBrick: " << Utils::DimCoordinateToString(&coordinate) << " " << tile_identifier.ToInformalString() << " -> size=" << map_z_subblockindex.size() << endl;
+        this->GetContextBase().WriteDebugString(ss.str().c_str());
+    */
 
     BrickOutputInfo* brick_output_data = new BrickOutputInfo();
     brick_output_data->max_count = static_cast<int>(map_z_subblockindex.size());
@@ -204,6 +206,10 @@ void CziBrickReader2::DoBrick(const libCZI::CDimCoordinate& coordinate, /*int m_
                         brick_coordinate_info.scene_index = tile_identifier.scene_index.value_or(std::numeric_limits<int>::min());
                         brick_coordinate_info.x_position = rectangle.x;
                         brick_coordinate_info.y_position = rectangle.y;
+
+                        // we use an arbitrary sub-block (the one which happened to be the last one loaded) in order to add
+                        //  information retrieved from sub-block-metadata
+                        this->FillOutInformationFromSubBlockMetadata(decode_info->subBlock.get(), &brick_coordinate_info);
 
                         this->deliver_brick_func_(brick, brick_coordinate_info);
                     }

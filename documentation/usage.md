@@ -82,6 +82,9 @@ Options:
                     Adds metadata to identify which sub-blocks were split during
                     processing, but can be treated as one contiguous area.
 
+  --do_not_write-stagepositions
+                    Instruct not to add stage-position to subblock-metadata if
+                    provided.
 
 
 libCZI version: 0.50.0
@@ -136,6 +139,9 @@ IPP version: 2021.8 (r0xba45569b) -  ippIP AVX-512F/CD/BW/DQ/VL (k0)
 * The option `--use-acquisition-tiles` can be used to add metadata to all sub-blocks which allows to identify which of them belong to the same contiguous 2d area. This information can be 
   used to differentiate between sub-blocks that need to be stitched (because they were acquired at different times and positions) and those that were only split for technical reasons but should
   be treated as one.
+* The option `--do_not_write-stagepositions` controls whether information containing the stage-positions of the sub-blocks is written to the sub-block-metadata on output. Currently, this information
+  is just copied from the input document, and it may be inconsistent in some cases. If this option is given, then the stage-positions are not written to the output document. Note that
+  only the bricksource implementation `planereader2` supports this option, the other implementations will not report stage-positions anyway.
  
 The exit code of the application is 0 (EXIT_SUCCESS) only if it ran to completion without any errors. In case of an error (of any kind) it will be <>0.  
 In case of circumstances which lead to an abnormal termination, information may be written to `stderr` (and this is not controlled by the `--verbosity` argument); output to `stderr` will

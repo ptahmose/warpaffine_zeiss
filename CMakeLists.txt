@@ -19,7 +19,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules" ${CMAKE_MODULE_PATH})
 
 project ("warpaffine"
-          VERSION 0.5.6
+          VERSION 0.6.0
           DESCRIPTION "experimental Deskew operation")
 
 option(WARPAFFINE_BUILD_CLANGTIDY "Build with Clang-Tidy" OFF)
@@ -35,6 +35,7 @@ option(WARPAFFINE_USE_PRIVATE_EIGEN3 "Eigen3 is downloaded as part of the build 
 # When this option is ON, we try to use an existing RapidJSON-library. Otherwise, we download a private
 #  copy of RapidJSON during the CMake-run.
 option(WARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON "Prefer an RapidJSON-package present on the system" OFF)
+
 
 if (WARPAFFINE_BUILD_CLANGTIDY)
   # How "clang-tidy" organization works (if this option is enable here):
@@ -134,6 +135,17 @@ else()
 
     set(RAPIDJSON_INCLUDE_DIRS ${rapidjson_SOURCE_DIR}/include)
 endif()
+
+# pull int tinyxml2 as a dependency
+FetchContent_Declare(
+  tinyxml2
+  GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
+  GIT_TAG        11.0.0 
+  GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(tinyxml2)
+
 
 include("${CMAKE_SOURCE_DIR}/modules/CheckForLibAtomicRequired.cmake")
 CheckForAdditionalLibsRequiredForAtomic(ADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC)

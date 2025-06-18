@@ -12,7 +12,7 @@ set(WARPAFFINE_SRCFILES
 
 add_executable(warpaffine ${WARPAFFINE_SRCFILES}  $<TARGET_OBJECTS:libwarpaffine>)
 
-target_link_libraries(warpaffine PRIVATE ${ADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC} TBB::tbb libCZIStatic CLI11::CLI11)
+target_link_libraries(warpaffine PRIVATE ${ADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC} TBB::tbb libCZIStatic CLI11::CLI11 tinyxml2)
 
 IF(WIN32) 
     set(IPP_LIBRARYNAME_SUFFIX "mt")

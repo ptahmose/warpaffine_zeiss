@@ -53,6 +53,14 @@ public:
         /// The brick-id this slice belongs to. If present AND the writer supports it, this id
         /// together with the z-index will be used to construct a retiling-id for the subblock.
         std::optional<std::uint32_t> brick_id;
+        
+        /// The stage x-position of the subblock. This is used to write the stage position into the subblock metadata.
+        /// A value of numeric_limits<double>::quiet_NaN() indicates that the stage position is not set.
+        double stage_x_position;
+
+        /// The stage y-position of the subblock. This is used to write the stage position into the subblock metadata.
+        /// A value of numeric_limits<double>::quiet_NaN() indicates that the stage position is not set.
+        double stage_y_position;
     };
 
     /// Gets number of currently pending slice write operations.
