@@ -17,10 +17,6 @@ void NullSlicesWriter::AddSlice(const AddSliceInfo& add_slice_info)
 {
 }
 
-//void NullSlicesWriter::AddAttachment(const std::shared_ptr<libCZI::IAttachment>& attachment)
-//{
-//}
-
 void NullSlicesWriter::Close(const std::shared_ptr<libCZI::ICziMetadata>&, const libCZI::ScalingInfo*, const std::function<void(libCZI::IXmlNodeRw*)>&, const std::function<void(libCZI::ICziWriter*)>&)
 {
 }
