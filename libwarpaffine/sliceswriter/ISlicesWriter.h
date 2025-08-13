@@ -72,9 +72,9 @@ public:
     /// \param  add_slice_info Information describing the add slice.
     virtual void AddSlice(const AddSliceInfo& add_slice_info) = 0;
     
-    /// Adds an attachment, i.e. a copy from a source document.
-    /// \param attachment The attachment to be added.
-    virtual void AddAttachment(const std::shared_ptr<libCZI::IAttachment>& attachment) = 0;
+    ///// Adds an attachment, i.e. a copy from a source document.
+    ///// \param attachment The attachment to be added.
+    //virtual void AddAttachment(const std::shared_ptr<libCZI::IAttachment>& attachment) = 0;
 
     /// Closes the output CZI-files. The specified metadata object (of the source document) is used
     /// to update the metadata of the output CZI-file.
@@ -85,7 +85,8 @@ public:
     ///                             is about to be written to the output file, allowing for modifications of it. 
     virtual void Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,
                         const libCZI::ScalingInfo* new_scaling_info,
-                        const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook) = 0;
+                        const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook,
+                        const std::function<void(libCZI::ICziWriter*)>& finalize_hook) = 0;
 
     virtual ~ICziSlicesWriter() = default;
 
