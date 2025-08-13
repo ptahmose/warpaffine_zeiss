@@ -82,10 +82,10 @@ public:
     /// \param  tweak_metadata_hook If non-null, this function will be called passing in the XML-metadata which
     ///                             is about to be written to the output file, allowing for modifications of it. 
     /// \param  finalize_hook       If non-null, this function will be called immediately before the output file is closed.
-    /// 							The function is passed the ICziWriter object, allowing for final modifications of 
-    /// 							the output CZI-file. It is guaranteed that the writer is not used concurrently,
-    /// 							that the callee can assume that call to the writer's object (which is single-threaded!)
-    /// 							are safe.
+    ///                             The function is passed the ICziWriter object, allowing for final modifications of 
+    ///                             the output CZI-file. It is guaranteed that the writer is not used concurrently,
+    ///                             that the callee can assume that call to the writer's object (which is single-threaded!)
+    ///                             are safe.
     virtual void Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,
                         const libCZI::ScalingInfo* new_scaling_info,
                         const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook,
