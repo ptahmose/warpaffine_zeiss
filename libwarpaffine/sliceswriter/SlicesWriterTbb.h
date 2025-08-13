@@ -9,8 +9,11 @@
 #include <memory>
 #include <atomic>
 #include <thread>
+#include <string>
 
 #include <tbb/concurrent_queue.h>
+
+#include <tinyxml2.h>
 
 /// Implementation of a ICziSlicesWriter that uses a MPSC-queue to serialize the slice-write operations.
 /// The actual CZI-writing is handled by libCZI.
@@ -43,11 +46,13 @@ public:
     void AddSlice(const AddSliceInfo& add_slice_info) override;
     void AddAttachment(const std::shared_ptr<libCZI::IAttachment>& attachment) override;
     void Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,
-                const libCZI::ScalingInfo* new_scaling_info,
-                const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook) override;
+        const libCZI::ScalingInfo* new_scaling_info,
+        const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook) override;
 
 private:
     void WriteWorker();
     void CopyMetadata(libCZI::IXmlNodeRead* rootSource, libCZI::IXmlNodeRw* rootDestination);
-    libCZI::GUID CreateRetilingIdWithZandSlice(int z, std::uint32_t slice) const;
+    void AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, tinyxml2::XMLElement& tagsNode) const;
+    libCZI::GUID CreateRetilingIdWithZAndSlice(int z, std::uint32_t slice) const;
+    std::string ConstructSubBlockMetadata(const SubBlockWriteInfo2& sub_block_write_info);
 };

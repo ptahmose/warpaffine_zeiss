@@ -34,7 +34,7 @@ IF(WIN32)
 ENDIF()
 target_link_libraries(warpaffine_unittests 
         GTest::gtest_main
-        ${ADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC} TBB::tbb libCZIStatic CLI11::CLI11
+        ${ADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC} TBB::tbb libCZIStatic CLI11::CLI11 tinyxml2
         Eigen3::Eigen)
 
 if (IPP_FOUND)

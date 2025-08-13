@@ -40,6 +40,7 @@ private:
     std::uint64_t override_main_memory_size_{ 0 };
     bool override_check_for_skewed_source_{ false };
     bool use_acquisition_tiles_{ false };
+    bool write_stagepositions_in_subblock_metadata_{ true };
     std::string source_stream_class_;
     std::map<int, libCZI::StreamsFactory::Property> property_bag_for_stream_class;
 public:
@@ -88,6 +89,7 @@ public:
     [[nodiscard]] std::uint64_t GetMainMemorySizeOverride() const { return this->override_main_memory_size_; }
     [[nodiscard]] bool GetOverrideCheckForSkewedSourceDocument() const { return this->override_check_for_skewed_source_; }
     [[nodiscard]] bool GetUseAcquisitionTiles() const { return this->use_acquisition_tiles_; }
+    [[nodiscard]] bool GetWriteStagePositionsInSubblockMetadata() const { return this->write_stagepositions_in_subblock_metadata_; }
 private:
     bool TryParseInputStreamCreationPropertyBag(const std::string& s, std::map<int, libCZI::StreamsFactory::Property>* property_bag);
 };
