@@ -556,16 +556,11 @@ int libmain(int argc, char** _argv)
         doWarp.DoOperation();
         WaitUntilDone(app_context, doWarp);
 
-        //get<0>(reader_and_stream)->EnumerateAttachments(
-        //    [&writer, &reader_and_stream](int index, const libCZI::AttachmentInfo& info) -> bool
-        //    {
-        //        writer->AddAttachment(get<0>(reader_and_stream)->ReadAttachment(index));
-        //        return true;
-        //    });
-
         const auto type_of_operation = app_context.GetCommandLineOptions().GetTypeOfOperation();
-        auto functor_tweak_metadata = [type_of_operation](libCZI::IXmlNodeRw* root_node)->void {TweakMetadata(root_node, type_of_operation); };
-        auto functor_copy_attachments = [&reader_and_stream](libCZI::ICziWriter* czi_writer)->void {CopyAttachmentsFromSourceToDestination(get<0>(reader_and_stream).get(), czi_writer); };
+        const auto functor_tweak_metadata = [type_of_operation](libCZI::IXmlNodeRw* root_node)->void {TweakMetadata(root_node, type_of_operation); };
+        const auto functor_copy_attachments = app_context.GetCommandLineOptions().GetCopyAttachmentsFromSourceToDestination() ?
+                                                [&reader_and_stream](libCZI::ICziWriter* czi_writer)->void {CopyAttachmentsFromSourceToDestination(get<0>(reader_and_stream).get(), czi_writer); } :
+                                                std::function<void(libCZI::ICziWriter*)>{};
 
         switch (type_of_operation)
         {
@@ -577,8 +572,8 @@ int libmain(int argc, char** _argv)
             writer->Close(
                 get<0>(reader_and_stream)->ReadMetadataSegment()->CreateMetaFromMetadataSegment(),
                 &scaling_info,
-                functor_tweak_metadata/*[type_of_operation](libCZI::IXmlNodeRw* root_node)->void {TweakMetadata(root_node, type_of_operation); }*/,
-                functor_copy_attachments/*[&reader_and_stream](libCZI::ICziWriter* czi_writer)->void {CopyAttachmentsFromSourceToDestination(get<0>(reader_and_stream).get(), czi_writer); }*/);
+                functor_tweak_metadata,
+                functor_copy_attachments);
             break;
         }
         case OperationType::CoverGlassTransform:
@@ -591,8 +586,8 @@ int libmain(int argc, char** _argv)
             writer->Close(
                 get<0>(reader_and_stream)->ReadMetadataSegment()->CreateMetaFromMetadataSegment(),
                 &scaling_info,
-                functor_tweak_metadata/*[type_of_operation](libCZI::IXmlNodeRw* root_node)->void {TweakMetadata(root_node, type_of_operation); }*/,
-                functor_copy_attachments/*[&reader_and_stream](libCZI::ICziWriter* czi_writer)->void {CopyAttachmentsFromSourceToDestination(get<0>(reader_and_stream).get(), czi_writer); }*/);
+                functor_tweak_metadata,
+                functor_copy_attachments);
             break;
         }
         default:
@@ -600,8 +595,8 @@ int libmain(int argc, char** _argv)
             writer->Close(
                 get<0>(reader_and_stream)->ReadMetadataSegment()->CreateMetaFromMetadataSegment(),
                 nullptr,
-                functor_tweak_metadata/*[type_of_operation](libCZI::IXmlNodeRw* root_node)->void {TweakMetadata(root_node, type_of_operation); }*/,
-                functor_copy_attachments/*[&reader_and_stream](libCZI::ICziWriter* czi_writer)->void {CopyAttachmentsFromSourceToDestination(get<0>(reader_and_stream).get(), czi_writer); }*/);
+                functor_tweak_metadata,
+                functor_copy_attachments);
             break;
         }
 
