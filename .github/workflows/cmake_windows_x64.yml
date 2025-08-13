@@ -55,7 +55,7 @@ jobs:
           echo "${folder_ipproot_windowsstyle}"
           echo "IPPROOT=${folder_ipproot_windowsstyle}" >> "$GITHUB_OUTPUT"
           echo "=================================="
-          vcpkg install --triplet x64-windows-static tbb:x64-windows eigen3 rapidjson 'curl[ssl]'
+          vcpkg install --triplet x64-windows-static tbb eigen3 rapidjson 'curl[ssl]'
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -82,10 +82,8 @@ jobs:
           ls -l "./build/warpaffine/${{env.BUILD_TYPE}}/"
           mkdir release
           cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.exe release/
-          ls -l "./build/warpaffine/${{env.BUILD_TYPE}}/"
           # check if there are any dlls to copy - if not, the copy command would fail
           dll_files=$(find ./build/warpaffine/${{env.BUILD_TYPE}} -maxdepth 1 -name '*.dll')
-          echo "Found DLL files: $dll_files"
           if [[ -n "$dll_files" ]]; then
             cp ./build/warpaffine/${{env.BUILD_TYPE}}/*.dll release/
           fi

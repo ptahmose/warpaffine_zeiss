@@ -75,8 +75,7 @@ if (NOT IPP_FOUND AND NOT WARPAFFINE_ALLOW_BUILD_WITHOUT_IPP)
 endif()
 
 find_package(TBB REQUIRED)
-#message(VERBOSE "*** TBB found at: ${TBB_DIR} ***")
-message(STATUS "*** TBB found at: ${TBB_DIR}  ${_tbb_subdir}  ${_tbb_bin_version} ***")
+message(VERBOSE "*** TBB found at: ${TBB_DIR} ***")
 
 include(FetchContent)
 FetchContent_Declare(
