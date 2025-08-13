@@ -461,11 +461,11 @@ static void CopyAttachmentsFromSourceToDestination(libCZI::ICZIReader* czi_reade
 {
     // Implementation for copying attachments from the source document to the destination document
     czi_reader->EnumerateAttachments(
-        [=](int index, const libCZI::AttachmentInfo& info) -> bool
+        [=](int index, const libCZI::AttachmentInfo&) -> bool
         {
             const auto attachment = czi_reader->ReadAttachment(index);
-            AddAttachmentInfo add_attachment_info;
             const auto& attachment_info = attachment->GetAttachmentInfo();
+            AddAttachmentInfo add_attachment_info;
             add_attachment_info.contentGuid = attachment_info.contentGuid;
             add_attachment_info.SetContentFileType(attachment_info.contentFileType);
             add_attachment_info.SetName(attachment_info.name.c_str());

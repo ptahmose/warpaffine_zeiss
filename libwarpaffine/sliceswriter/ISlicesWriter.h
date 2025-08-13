@@ -72,17 +72,20 @@ public:
     /// \param  add_slice_info Information describing the add slice.
     virtual void AddSlice(const AddSliceInfo& add_slice_info) = 0;
     
-    ///// Adds an attachment, i.e. a copy from a source document.
-    ///// \param attachment The attachment to be added.
-    //virtual void AddAttachment(const std::shared_ptr<libCZI::IAttachment>& attachment) = 0;
-
-    /// Closes the output CZI-files. The specified metadata object (of the source document) is used
-    /// to update the metadata of the output CZI-file.
+    /// Wait until the write-queue is empty and then closes the output CZI-file. The specified metadata 
+    /// object (of the source document) is used to update the metadata of the output CZI-file. In addition,
+    /// hook-functions can be specified which are called at certain points during the closing of the file in
+    /// order to do final modifications of the CZI-file.
     ///
     /// \param  source_metadata     The metadata object of the source document.
     /// \param  new_scaling_info    If non-null, this scaling information is set with the output document.
     /// \param  tweak_metadata_hook If non-null, this function will be called passing in the XML-metadata which
     ///                             is about to be written to the output file, allowing for modifications of it. 
+    /// \param  finalize_hook       If non-null, this function will be called immediately before the output file is closed.
+    /// 							The function is passed the ICziWriter object, allowing for final modifications of 
+    /// 							the output CZI-file. It is guaranteed that the writer is not used concurrently,
+    /// 							that the callee can assume that call to the writer's object (which is single-threaded!)
+    /// 							are safe.
     virtual void Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,
                         const libCZI::ScalingInfo* new_scaling_info,
                         const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook,
