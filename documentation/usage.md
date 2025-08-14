@@ -6,90 +6,110 @@ The help text of warpaffine is given below. This can be printed by running `warp
 
 ```
 Deskew-processing
-Usage: warpaffine.exe [OPTIONS]
 
-  version: 0.1.0
 
-Options:
-  -h,--help         Print this help message and exit
+warpaffine.exe [OPTIONS]
 
-  -s,--source SOURCE_FILE
+
+  version: 0.6.1
+
+OPTIONS:
+  -h, --help        Print this help message and exit
+
+  -s, --source SOURCE_FILE
                     The source CZI-file to be processed.
 
-  -d,--destination DESTINATION_FILE
+      --source-stream-class STREAMCLASS
+                    Specifies the stream-class used for reading the source
+                    CZI-file. If not specified, the default file-reader
+                    stream-class is used. Run with argument '--version' to get a
+                    list of available stream-classes.
+
+      --propbag-source-stream-creation PROPBAG
+                    Specifies the property-bag used for creating the stream used
+                    for reading the source CZI-file. The data is given in
+                    JSON-notation.
+
+  -d, --destination DESTINATION_FILE
                     The destination CZI-file to be written. If "nul" is
                     specified here, then the processed data is not written out,
                     it is discarded instead.
 
-  -o,--operation MODE_OF_OPERATION
+  -o, --operation MODE_OF_OPERATION
                     Specifies the mode of operation. Possible values are
                     'Deskew', 'CoverGlassTransform',
                     'CoverGlassTransform_and_xy_rotated' and 'Identify'.
 
-  -i,--interpolation INTERPOLATION
+  -i, --interpolation INTERPOLATION
                     Specifies the interpolation mode to be used. Possible values
                     are 'NN' or 'NearestNeighbor', 'linear', 'cubic', 'bspline',
                     'catmullrom' and 'b05c03'.
 
-  -r,--reader READER_IMPLEMENTATION
+  -r, --reader READER_IMPLEMENTATION
                     Which libCZI-reader-implementation to use. Possible values
                     are 'stock' and (on Windows) 'mmf'.
 
-  -t,--number_of_reader_threads NUMBER_OF_READER_THREADS
+  -t, --number_of_reader_threads NUMBER_OF_READER_THREADS
                     The number of reader-threads.
 
-  -b,--bricksource BRICK_READER_IMPLEMENTATION
+  -b, --bricksource BRICK_READER_IMPLEMENTATION
                     Which brick-reader-implementation to use. Possible values
                     are 'planereader', 'planereader2' or 'linearreading'.
 
-  -w,--warp_engine WARP_ENGINE_IMPLEMENTATION
+  -w, --warp_engine WARP_ENGINE_IMPLEMENTATION
                     Which warp-affine transformation implementation to use.
                     Possible values are 'IPP', 'reference' or 'null'.
 
-  --stop_pipeline_after STOP_AFTER_OPERATION
+      --stop_pipeline_after STOP_AFTER_OPERATION
                     For testing: stop the pipeline after operation. Possible
                     values are 'read', 'decompress' or 'none'.
 
-  --task_arena_implementation TASK_ARENA_IMPLEMENTATION
+      --task_arena_implementation TASK_ARENA_IMPLEMENTATION
                     For testing: choose the task-arena implementation.
                     Currently, there is only one available: 'tbb'.
 
-  -c,--compression_options COMPRESSION_OPTIONS
+  -c, --compression_options COMPRESSION_OPTIONS
                     Specify compression parameters.
 
-  --parameters_bricksource TEXT
+      --parameters_bricksource TEXT
                     Specify parameters for the brick-reader
 
-  --verbosity VERBOSITY
+      --verbosity VERBOSITY
                     Specify the verbosity for messages from the application.
                     Possible values are 'maximal' (3), 'chatty' (2), 'normal'
                     (1) or 'minimal' (0).
 
-  --hash-result     Calculate a hash for the result data.
+      --hash-result Calculate a hash for the result data.
 
-  -m,--max-tile-extent MAX_TILE_EXTENT
+  -m, --max-tile-extent MAX_TILE_EXTENT
                     Specify the max width/height of a tile. If larger, the tile
                     is split into smaller tiles. Default is 2048.
 
-  --override-memory-size RAM-SIZE
+      --override-memory-size RAM-SIZE
                     Override the main-memory size.
 
-  --override-check-for-skewed-source
+      --override-check-for-skewed-source
                     Override check of source-document whether it is marked as
                     containing 'skewed z-stacks'.
 
-  --use-acquisition-tiles
-                    Adds metadata to identify which sub-blocks were split during
+      --use-acquisition-tiles
+                    Adds metadata to identify which subblocks were split during
                     processing, but can be treated as one contiguous area.
 
-  --do_not_write-stagepositions
+      --do_not_write-stagepositions
                     Instruct not to add stage-position to subblock-metadata if
                     provided.
 
+      --do_not_copy_attachments_from_source_to_destination
+                    Instruct not to copy CZI-attachments from the source to the
+                    destination.
 
-libCZI version: 0.50.0
+
+
+libCZI version: 0.66.5 (built with MSVC 19.44.35214.0)
+stream-classes: windows_file_inputstream, c_runtime_file_inputstream
 TBB version: 2021.9.0
-IPP version: 2021.8 (r0xba45569b) -  ippIP AVX-512F/CD/BW/DQ/VL (k0)
+IPP version: 2022.1.0 (r0xc8d62893) - ippIP AVX2 (l9)
 ```
 
 ## Explanation of the parameters
@@ -142,6 +162,8 @@ IPP version: 2021.8 (r0xba45569b) -  ippIP AVX-512F/CD/BW/DQ/VL (k0)
 * The option `--do_not_write-stagepositions` controls whether information containing the stage-positions of the sub-blocks is written to the sub-block-metadata on output. Currently, this information
   is just copied from the input document, and it may be inconsistent in some cases. If this option is given, then the stage-positions are not written to the output document. Note that
   only the bricksource implementation `planereader2` supports this option, the other implementations will not report stage-positions anyway.
+* The option `--do_not_copy_attachments_from_source_to_destination` can be used to prevent copying attachments from the source document to the destination document. 
+  By default, all attachments from the source are copied verbatim into the destination.
  
 The exit code of the application is 0 (EXIT_SUCCESS) only if it ran to completion without any errors. In case of an error (of any kind) it will be <>0.  
 In case of circumstances which lead to an abnormal termination, information may be written to `stderr` (and this is not controlled by the `--verbosity` argument); output to `stderr` will

@@ -43,20 +43,6 @@ void CziSlicesWriterTbb::AddSlice(const AddSliceInfo& add_slice_info)
     ++this->number_of_slicewrite_operations_in_flight_;
 }
 
-void CziSlicesWriterTbb::AddAttachment(const std::shared_ptr<libCZI::IAttachment>& attachment)
-{
-    AddAttachmentInfo add_attachment_info;
-    const auto& attachment_info = attachment->GetAttachmentInfo();
-    add_attachment_info.contentGuid = attachment_info.contentGuid;
-    add_attachment_info.SetContentFileType(attachment_info.contentFileType);
-    add_attachment_info.SetName(attachment_info.name.c_str());
-    size_t size_of_data;
-    auto raw_data = attachment->GetRawData(&size_of_data);
-    add_attachment_info.ptrData = raw_data.get();
-    add_attachment_info.dataSize = static_cast<uint32_t>(size_of_data);
-    this->writer_->SyncAddAttachment(add_attachment_info);
-}
-
 void CziSlicesWriterTbb::WriteWorker()
 {
     try
@@ -153,7 +139,8 @@ libCZI::GUID CziSlicesWriterTbb::CreateRetilingIdWithZAndSlice(int z, uint32_t s
 
 void CziSlicesWriterTbb::Close(const std::shared_ptr<libCZI::ICziMetadata>& source_metadata,
                                 const libCZI::ScalingInfo* new_scaling_info,
-                                const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook)
+                                const std::function<void(libCZI::IXmlNodeRw*)>& tweak_metadata_hook,
+                                const std::function<void(libCZI::ICziWriter*)>& finalize_hook)
 {
     SubBlockWriteInfo2 sub_block_write_info;
     this->queue_.push(sub_block_write_info);
@@ -213,17 +200,17 @@ void CziSlicesWriterTbb::Close(const std::shared_ptr<libCZI::ICziMetadata>& sour
         if (new_scaling_info != nullptr)
         {
             MetadataUtils::WriteScalingInfo(metadata_builder_from_source.get(), *new_scaling_info);
-        }
 
-        if (new_scaling_info->IsScaleZValid())
-        {
-            auto increment_node = metadata_builder_from_source->GetRootNode()->GetOrCreateChildNode("Metadata/Information/Image/Dimensions/Z/Positions/Interval/Increment");
-            if (increment_node)
+            if (new_scaling_info->IsScaleZValid())
             {
-                const double original_scaling_meters = new_scaling_info->scaleZ;
+                auto increment_node = metadata_builder_from_source->GetRootNode()->GetOrCreateChildNode("Metadata/Information/Image/Dimensions/Z/Positions/Interval/Increment");
+                if (increment_node)
+                {
+                    const double original_scaling_meters = new_scaling_info->scaleZ;
 
-                // increment should be in micrometers
-                increment_node->SetValueDbl(original_scaling_meters * 1e6);
+                    // increment should be in micrometers
+                    increment_node->SetValueDbl(original_scaling_meters * 1e6);
+                }
             }
         }
 
@@ -239,6 +226,11 @@ void CziSlicesWriterTbb::Close(const std::shared_ptr<libCZI::ICziMetadata>& sour
         metadata_info.szMetadata = source_metadata_xml.c_str();
         metadata_info.szMetadataSize = source_metadata_xml.size();
         this->writer_->SyncWriteMetadata(metadata_info);
+    }
+
+    if (finalize_hook)
+    {
+        finalize_hook(this->writer_.get());
     }
 
     this->writer_->Close();

@@ -272,7 +272,8 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
     string override_ram_size_parameter;
     bool override_check_for_skewed_source = false;
     bool use_acquisition_tiles = false;
-    bool do_not_write_stagepositions_in_subblock_metadata = false;
+    bool do_not_write_stage_positions_in_subblock_metadata = false;
+    bool do_not_copy_attachments_from_source_to_destination = false;
     app.add_option("-s,--source", source_filename, "The source CZI-file to be processed.")
         ->option_text("SOURCE_FILE")
         ->required();
@@ -346,8 +347,10 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
         "Override check of source-document whether it is marked as containing 'skewed z-stacks'.");
     app.add_flag("--use-acquisition-tiles", use_acquisition_tiles,
         "Adds metadata to identify which subblocks were split during processing, but can be treated as one contiguous area.");
-    app.add_flag("--do_not_write-stagepositions", do_not_write_stagepositions_in_subblock_metadata,
+    app.add_flag("--do_not_write-stagepositions", do_not_write_stage_positions_in_subblock_metadata,
         "Instruct not to add stage-position to subblock-metadata if provided.");
+    app.add_flag("--do_not_copy_attachments_from_source_to_destination", do_not_copy_attachments_from_source_to_destination,
+        "Instruct not to copy CZI-attachments from the source to the destination.");
 
     auto formatter = make_shared<CustomFormatter>();
     app.formatter(formatter);
@@ -383,7 +386,8 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
     this->max_tile_extent_ = max_tile_extent;
     this->override_check_for_skewed_source_ = override_check_for_skewed_source;
     this->use_acquisition_tiles_ = use_acquisition_tiles;
-    this->write_stagepositions_in_subblock_metadata_ = !do_not_write_stagepositions_in_subblock_metadata;
+    this->write_stage_positions_in_subblock_metadata_ = !do_not_write_stage_positions_in_subblock_metadata;
+    this->copy_attachments_from_source_to_destination_ = !do_not_copy_attachments_from_source_to_destination;
     this->source_stream_class_ = argument_source_stream_class;
 
     if (!override_ram_size_parameter.empty())
