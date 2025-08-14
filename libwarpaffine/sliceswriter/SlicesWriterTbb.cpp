@@ -200,17 +200,17 @@ void CziSlicesWriterTbb::Close(const std::shared_ptr<libCZI::ICziMetadata>& sour
         if (new_scaling_info != nullptr)
         {
             MetadataUtils::WriteScalingInfo(metadata_builder_from_source.get(), *new_scaling_info);
-        }
 
-        if (new_scaling_info->IsScaleZValid())
-        {
-            auto increment_node = metadata_builder_from_source->GetRootNode()->GetOrCreateChildNode("Metadata/Information/Image/Dimensions/Z/Positions/Interval/Increment");
-            if (increment_node)
+            if (new_scaling_info->IsScaleZValid())
             {
-                const double original_scaling_meters = new_scaling_info->scaleZ;
+                auto increment_node = metadata_builder_from_source->GetRootNode()->GetOrCreateChildNode("Metadata/Information/Image/Dimensions/Z/Positions/Interval/Increment");
+                if (increment_node)
+                {
+                    const double original_scaling_meters = new_scaling_info->scaleZ;
 
-                // increment should be in micrometers
-                increment_node->SetValueDbl(original_scaling_meters * 1e6);
+                    // increment should be in micrometers
+                    increment_node->SetValueDbl(original_scaling_meters * 1e6);
+                }
             }
         }
 
