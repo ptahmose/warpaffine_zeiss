@@ -91,4 +91,4 @@ IF(WIN32)
 endif()
 
 include(GoogleTest)
-gtest_discover_tests(warpaffine_unittests)
+gtest_discover_tests(warpaffine_unittests DISCOVERY_TIMEOUT 30)
