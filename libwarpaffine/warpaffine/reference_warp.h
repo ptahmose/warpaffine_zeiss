@@ -36,9 +36,9 @@ private:
 
     static inline bool IsInsideBrickForTriLinear(const BrickInfo& brick_info, const DoublePos3& position)
     {
-        if (position.x_position < 0 || position.x_position >= brick_info.width /* - 1*/ ||
-            position.y_position < 0 || position.y_position >= brick_info.height /* - 1 */ ||
-            position.z_position < 0 || position.z_position >= brick_info.depth /*- 1*/)
+        if (position.x_position < -1 || position.x_position >= brick_info.width /* - 1*/ ||
+            position.y_position < -1 || position.y_position >= brick_info.height/* - 1 */ ||
+            position.z_position < -1 || position.z_position >= brick_info.depth /*- 1*/)
         {
             return false;
         }
@@ -48,9 +48,9 @@ private:
 
     static inline bool IsInsideBrick(const BrickInfo& brick_info, const IntPos3& position)
     {
-        if (position.x_position < 0 || position.x_position >= brick_info.width ||
-            position.y_position < 0 || position.y_position >= brick_info.height ||
-            position.z_position < 0 || position.z_position >= brick_info.depth)
+        if (position.x_position <= -1|| position.x_position >= brick_info.width ||
+            position.y_position <= -1 || position.y_position >= brick_info.height ||
+            position.z_position <= -1 || position.z_position >= brick_info.depth)
         {
             return false;
         }
@@ -116,13 +116,13 @@ private:
         t c011 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, position_rounded_down.y_position + 1, position_rounded_down.z_position + 1));
         t c111 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position + 1, position_rounded_down.y_position + 1, position_rounded_down.z_position + 1));*/
         const t c000 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, position_rounded_down.y_position, position_rounded_down.z_position));
-        const t c100 = *static_cast<const t*>(brick.GetConstPointerToPixel(min(position_rounded_down.x_position + 1, (int)brick.info.width), position_rounded_down.y_position, position_rounded_down.z_position));
-        const t c010 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, min(position_rounded_down.y_position + 1, (int)brick.info.height), position_rounded_down.z_position));
-        const t c110 = *static_cast<const t*>(brick.GetConstPointerToPixel(min(position_rounded_down.x_position + 1, (int)brick.info.width), min(position_rounded_down.y_position + 1, (int)brick.info.height), position_rounded_down.z_position));
-        const t c001 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, position_rounded_down.y_position, min(position_rounded_down.z_position + 1, (int)brick.info.depth)));
-        const t c101 = *static_cast<const t*>(brick.GetConstPointerToPixel(min(position_rounded_down.x_position + 1, (int)brick.info.width), position_rounded_down.y_position, min(position_rounded_down.z_position + 1, (int)brick.info.depth)));
-        const t c011 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, min(position_rounded_down.y_position + 1, (int)brick.info.height), min(position_rounded_down.z_position + 1, (int)brick.info.depth)));
-        const t c111 = *static_cast<const t*>(brick.GetConstPointerToPixel(min(position_rounded_down.x_position + 1, (int)brick.info.width), min(position_rounded_down.y_position + 1, (int)brick.info.height), min(position_rounded_down.z_position + 1, (int)brick.info.depth)));
+        const t c100 = *static_cast<const t*>(brick.GetConstPointerToPixel(min(position_rounded_down.x_position + 1, (int)brick.info.width-1), position_rounded_down.y_position, position_rounded_down.z_position));
+        const t c010 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, min(position_rounded_down.y_position + 1, (int)brick.info.height-1), position_rounded_down.z_position));
+        const t c110 = *static_cast<const t*>(brick.GetConstPointerToPixel(min(position_rounded_down.x_position + 1, (int)brick.info.width-1), min(position_rounded_down.y_position + 1, (int)brick.info.height-1), position_rounded_down.z_position));
+        const t c001 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, position_rounded_down.y_position, min(position_rounded_down.z_position + 1, (int)brick.info.depth-1)));
+        const t c101 = *static_cast<const t*>(brick.GetConstPointerToPixel(min(position_rounded_down.x_position + 1, (int)brick.info.width-1), position_rounded_down.y_position, min(position_rounded_down.z_position + 1, (int)brick.info.depth-1)));
+        const t c011 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, min(position_rounded_down.y_position + 1, (int)brick.info.height-1), min(position_rounded_down.z_position + 1, (int)brick.info.depth-1)));
+        const t c111 = *static_cast<const t*>(brick.GetConstPointerToPixel(min(position_rounded_down.x_position + 1, (int)brick.info.width-1), min(position_rounded_down.y_position + 1, (int)brick.info.height-1), min(position_rounded_down.z_position + 1, (int)brick.info.depth-1)));
 
         const double c00 = c000 * (1 - xd) + c100 * xd;
         const double c01 = c001 * (1 - xd) + c101 * xd;
