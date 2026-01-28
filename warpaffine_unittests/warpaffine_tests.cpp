@@ -1059,3 +1059,44 @@ TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceTriLinear)
         }
     }
 }
+
+TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8IppNearestNeighbor)
+{
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+    GTEST_SKIP() << "Skipping because IPP is not available";
+#endif
+
+    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
+
+    static const uint8_t source_data[2 * 2 * 3] =
+    {
+        10, 11, /* (0,0,0)   (1,0,0) */
+        20, 21, /* (0,1,0)   (1,1,0) */
+
+        30, 51, /* (0,0,1)   (1,0,1) */
+        31, 61, /* (0,1,1)   (1,1,1) */
+
+        40, 71, /* (0,0,2)   (1,0,2) */
+        41, 72, /* (0,1,2)   (1,1,2) */
+    };
+
+    Brick source_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+    CopyIntoBrick(source_brick, source_data);
+
+    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+
+    Eigen::Matrix4d transformation_matrix;
+    transformation_matrix <<
+        1, 0, 0, 0.25, // we are off by a quarter pixel in x, y and z - expectation is
+        0, 1, 0, 0.25, // that when sampling "one pixel without the border", we replicate
+        0, 0, 1, 0.25, // the pixel at the border
+        0, 0, 0, 1;
+
+    IntPos3 position_destination_brick{ 0, 0, 0 };
+    warp_affine->Execute(
+        transformation_matrix,
+        position_destination_brick,
+        Interpolation::kBicubic,
+        source_brick,
+        destination_brick);
+}

@@ -240,15 +240,6 @@ private:
                             break;
                         }
                     }
-                    /*if (IsInsideBrickForTriLinear(source_brick.info, source_point3))
-                    {
-                        const t source_pixel_linear_interpolated = SampleWithLinearInterpolation<t>(source_brick, source_point3);
-                        *dest_pixel = source_pixel_linear_interpolated;
-                    }
-                    else
-                    {
-                        *dest_pixel = 0;
-                    }*/
                 }
             }
         }
