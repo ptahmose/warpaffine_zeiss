@@ -135,7 +135,7 @@ private:
             static_cast<int>(position.y_position),
             static_cast<int>(position.z_position)
         };
-        
+
         const t c000 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, position_rounded_down.y_position, position_rounded_down.z_position));
         const t c100 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position + 1, position_rounded_down.y_position, position_rounded_down.z_position));
         const t c010 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, position_rounded_down.y_position + 1, position_rounded_down.z_position));
@@ -144,7 +144,7 @@ private:
         const t c101 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position + 1, position_rounded_down.y_position, position_rounded_down.z_position + 1));
         const t c011 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position, position_rounded_down.y_position + 1, position_rounded_down.z_position + 1));
         const t c111 = *static_cast<const t*>(brick.GetConstPointerToPixel(position_rounded_down.x_position + 1, position_rounded_down.y_position + 1, position_rounded_down.z_position + 1));
-        
+
         const double c00 = c000 * (1 - xd) + c100 * xd;
         const double c01 = c001 * (1 - xd) + c101 * xd;
         const double c10 = c010 * (1 - xd) + c110 * xd;
@@ -203,7 +203,7 @@ private:
         return (c < 0) ? 0 : c > static_cast<double>(std::numeric_limits<t>::max()) ? std::numeric_limits<t>::max() : static_cast<t>(lround(c));
     }
 
-    template <typename t>
+    /*template <typename t>
     static inline void TriLinearWarp(const Brick& source_brick, const Brick& destination_brick, const Eigen::Matrix4d& transformation_inverse)
     {
         for (uint32_t z = 0; z < destination_brick.info.depth; ++z)
@@ -241,6 +241,130 @@ private:
                         }
                     }
                 }
+            }
+        }
+    }*/
+
+    /// Computes the range of x-values in destination space where a source coordinate falls within 
+/// specified bounds. For an affine transformation, each source coordinate is a linear function 
+/// of the destination x-coordinate: source_coord = base + coeff * x. This function solves for 
+/// the x-range where: lo <= base + coeff * x < hi.
+/// \param base   The source coordinate value when x=0 (precomputed from y, z, and translation).
+/// \param coeff  The rate of change of source coordinate per unit x (from transformation matrix).
+/// \param lo     Lower bound (inclusive) for the source coordinate.
+/// \param hi     Upper bound (exclusive) for the source coordinate.
+/// \param max_x  Maximum destination x-value (destination width).
+/// \returns A pair (start, end) representing the inclusive x-range. If start > end, the range is empty.
+    static inline std::pair<int, int> ComputeXRange(double base, double coeff, double lo, double hi, int max_x)
+    {
+        if (std::abs(coeff) < 1e-12)
+        {
+            return (base >= lo && base < hi) ? std::make_pair(0, max_x - 1) : std::make_pair(0, -1);
+        }
+
+        double x0 = (lo - base) / coeff;
+        double x1 = (hi - base) / coeff;
+        if (coeff < 0) std::swap(x0, x1);
+
+        return { std::max(0, static_cast<int>(std::ceil(x0))),
+                 std::min(max_x - 1, static_cast<int>(std::ceil(x1)) - 1) };
+    }
+
+    /// Computes the intersection of three x-ranges. Used to find x-values where all three source 
+    /// coordinates (x, y, z) simultaneously satisfy their respective bounds.
+    /// \param a First range (typically from x-coordinate constraint).
+    /// \param b Second range (typically from y-coordinate constraint).
+    /// \param c Third range (typically from z-coordinate constraint).
+    /// \returns The intersection range. Empty (first > second) if no overlap exists.
+    static inline std::pair<int, int> IntersectRanges(std::pair<int, int> a, std::pair<int, int> b, std::pair<int, int> c)
+    {
+        return { std::max({a.first, b.first, c.first}), std::min({a.second, b.second, c.second}) };
+    }
+
+    /// Performs trilinear interpolation warp with optimized scanline processing.
+    /// 
+    /// The naive approach checks bounds for every destination pixel, which is expensive. This 
+    /// optimized version exploits the linearity of affine transformations: for a fixed (y, z) 
+    /// scanline, the source position varies linearly with x. This allows precomputing the x-ranges 
+    /// where the source falls into each category (inside, border, outside).
+    /// 
+    /// Each scanline is divided into up to 5 contiguous regions:
+    ///   - outside (zeros) | border (clamped) | inside (fast) | border (clamped) | outside (zeros)
+    /// 
+    /// The "inside" region is the hot path where sampling requires no bounds checking.
+    /// 
+    /// \tparam t      Pixel type (e.g., uint8_t, uint16_t, float).
+    /// \param source_brick           Source volume to sample from.
+    /// \param destination_brick      Destination volume to write to.
+    /// \param transformation_inverse Inverse of the affine transformation matrix (4x4 homogeneous).
+    template <typename t>
+    static inline void TriLinearWarp(const Brick& source_brick, const Brick& destination_brick, const Eigen::Matrix4d& transformation_inverse)
+    {
+        // Extract transformation matrix coefficients. The inverse transformation maps 
+        // destination coords to source coords.
+        const double a00 = transformation_inverse(0, 0), a01 = transformation_inverse(0, 1), a02 = transformation_inverse(0, 2), a03 = transformation_inverse(0, 3);
+        const double a10 = transformation_inverse(1, 0), a11 = transformation_inverse(1, 1), a12 = transformation_inverse(1, 2), a13 = transformation_inverse(1, 3);
+        const double a20 = transformation_inverse(2, 0), a21 = transformation_inverse(2, 1), a22 = transformation_inverse(2, 2), a23 = transformation_inverse(2, 3);
+
+        const double sw = static_cast<double>(source_brick.info.width);
+        const double sh = static_cast<double>(source_brick.info.height);
+        const double sd = static_cast<double>(source_brick.info.depth);
+        const int dw = static_cast<int>(destination_brick.info.width);
+
+        for (uint32_t z = 0; z < destination_brick.info.depth; ++z)
+        {
+            for (uint32_t y = 0; y < destination_brick.info.height; ++y)
+            {
+                // Base source position for this scanline (at x=0): source = base + coeff * x
+                const double bx = a01 * y + a02 * z + a03;
+                const double by = a11 * y + a12 * z + a13;
+                const double bz = a21 * y + a22 * z + a23;
+
+                // Inside range: 0 <= source < dim-1 (all 8 neighbors are valid)
+                auto inside = IntersectRanges(
+                    ComputeXRange(bx, a00, 0, sw - 1, dw),
+                    ComputeXRange(by, a10, 0, sh - 1, dw),
+                    ComputeXRange(bz, a20, 0, sd - 1, dw));
+
+                // Border range: -1 <= source <= dim (within reach of clamped sampling)
+                auto border = IntersectRanges(
+                    ComputeXRange(bx, a00, -1, sw + 1, dw),
+                    ComputeXRange(by, a10, -1, sh + 1, dw),
+                    ComputeXRange(bz, a20, -1, sd + 1, dw));
+
+                int x = 0;
+
+                // Region 1: outside (before border) - output zeros
+                for (; x < border.first && x < dw; ++x)
+                    *static_cast<t*>(destination_brick.GetPointerToPixel(x, y, z)) = 0;
+
+                // Region 2: border (before inside) - clamped sampling
+                for (; x < inside.first && x <= border.second; ++x)
+                {
+                    DoublePos3 sp = { bx + a00 * x, by + a10 * x, bz + a20 * x };
+                    *static_cast<t*>(destination_brick.GetPointerToPixel(x, y, z)) =
+                        SampleWithLinearInterpolationOutsideOfVolume<t>(source_brick, sp);
+                }
+
+                // Region 3: inside - fast path, no bounds checking
+                for (; x <= inside.second; ++x)
+                {
+                    DoublePos3 sp = { bx + a00 * x, by + a10 * x, bz + a20 * x };
+                    *static_cast<t*>(destination_brick.GetPointerToPixel(x, y, z)) =
+                        SampleWithLinearInterpolation<t>(source_brick, sp);
+                }
+
+                // Region 4: border (after inside) - clamped sampling
+                for (; x <= border.second; ++x)
+                {
+                    DoublePos3 sp = { bx + a00 * x, by + a10 * x, bz + a20 * x };
+                    *static_cast<t*>(destination_brick.GetPointerToPixel(x, y, z)) =
+                        SampleWithLinearInterpolationOutsideOfVolume<t>(source_brick, sp);
+                }
+
+                // Region 5: outside (after border) - output zeros
+                for (; x < dw; ++x)
+                    *static_cast<t*>(destination_brick.GetPointerToPixel(x, y, z)) = 0;
             }
         }
     }
