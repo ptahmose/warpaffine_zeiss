@@ -22,6 +22,12 @@ project ("warpaffine"
           VERSION 0.6.1
           DESCRIPTION "experimental Deskew operation")
 
+#          include("C:/Program Files/NVIDIA nvCOMP/v5.0/lib/12/cmake/nvcomp/nvcomp-targets-static.cmake")
+find_package(CUDAToolkit REQUIRED)
+set(CMAKE_PREFIX_PATH "C:/Program Files/NVIDIA nvCOMP/v5.0/lib/12/cmake/nvcomp/")
+find_package(nvcomp CONFIG REQUIRED)  # uses nvcomp’s packaged configuration
+
+
 option(WARPAFFINE_BUILD_CLANGTIDY "Build with Clang-Tidy" OFF)
 
 # This option is only relevant if IPP is not found - i.e. we still try to find the IPP libraries, but if we don't find them, 
