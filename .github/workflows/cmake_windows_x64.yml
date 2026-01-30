@@ -55,12 +55,12 @@ jobs:
           echo "${folder_ipproot_windowsstyle}"
           echo "IPPROOT=${folder_ipproot_windowsstyle}" >> "$GITHUB_OUTPUT"
           echo "=================================="
-          vcpkg install --triplet x64-windows-static tbb rapidjson 'curl[ssl]'
+          vcpkg install --triplet x64-windows-static tbb eigen3 rapidjson 'curl[ssl]'
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DIPPROOT="${{steps.install-ipp.outputs.IPPROOT}}" -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3=OFF  -DLIBCZI_BUILD_CURL_BASED_STREAM=ON -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_LIBCURL=ON -DWARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON=ON -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake  -DVCPKG_TARGET_TRIPLET=x64-windows-static
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DIPPROOT="${{steps.install-ipp.outputs.IPPROOT}}" -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3=ON  -DLIBCZI_BUILD_CURL_BASED_STREAM=ON -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_LIBCURL=ON -DWARPAFFINE_BUILD_PREFER_EXTERNALPACKAGE_RAPIDJSON=ON -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake  -DVCPKG_TARGET_TRIPLET=x64-windows-static
 
       - name: Build
         # Build your program with the given configuration
