@@ -237,9 +237,9 @@ TEST(WarpAffine, MoveOnePixelToTheLeftGray16Reference)
 
 TEST(WarpAffine, MoveOnePixelToTheLeftGray8IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestMoveOnePixelToTheLeftGray8(warp_affine.get());
 }
@@ -293,9 +293,9 @@ static void MoveOnePixelToTheRightAndUseOffsetForDestination(IWarpAffine* warp_a
 
 TEST(WarpAffine, MoveOnePixelToTheRightAndUseOffsetForDestinationGray16IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     MoveOnePixelToTheRightAndUseOffsetForDestination<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
@@ -308,9 +308,9 @@ TEST(WarpAffine, MoveOnePixelToTheRightAndUseOffsetForDestinationGray16Reference
 
 TEST(WarpAffine, MoveOnePixelToTheRightAndUseOffsetForDestinationGray8IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     MoveOnePixelToTheRightAndUseOffsetForDestination<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
@@ -367,9 +367,9 @@ TEST(WarpAffine, LinearInterpolation2x2x2To1x1Reference)
 
 TEST(WarpAffine, LinearInterpolation2x2x2To1x1IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestLinearInterpolation2x2x2To1x1(warp_affine.get());
 }
@@ -430,9 +430,9 @@ static void TestRotateBy90DegreeAroundZAxis(IWarpAffine* warp_affine)
 
 TEST(WarpAffine, RotateBy90DegreeAroundZAxisIPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestRotateBy90DegreeAroundZAxis<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
@@ -445,9 +445,9 @@ TEST(WarpAffine, RotateBy90DegreeAroundZAxisReference)
 
 TEST(WarpAffine, RotateBy90DegreeAroundZAxisGray8IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestRotateBy90DegreeAroundZAxis<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
@@ -513,9 +513,9 @@ static void TestRotateBy90DegreeAroundZAxisAndDestinationOffset(IWarpAffine* war
 
 TEST(WarpAffine, RotateBy90DegreeAroundZAxisAndDestinationOffsetGray16IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestRotateBy90DegreeAroundZAxisAndDestinationOffset<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
@@ -528,9 +528,9 @@ TEST(WarpAffine, RotateBy90DegreeAroundZAxisAndDestinationOffsetGray16Reference)
 
 TEST(WarpAffine, RotateBy90DegreeAroundZAxisAndDestinationOffsetGray8IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestRotateBy90DegreeAroundZAxisAndDestinationOffset<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
@@ -603,9 +603,9 @@ static void TestMirrorOnYZPlane(IWarpAffine* warp_affine)
 
 TEST(WarpAffine, MirrorOnZYPlaneGray16IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestMirrorOnYZPlane<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
@@ -618,9 +618,9 @@ TEST(WarpAffine, MirrorOnZYPlaneGray16Reference)
 
 TEST(WarpAffine, MirrorOnZYPlaneGray8IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestMirrorOnYZPlane<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
@@ -693,9 +693,9 @@ static void TestMirrorOnXYPlane(IWarpAffine* warp_affine)
 
 TEST(WarpAffine, MirrorOnXYPlaneGray16IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestMirrorOnXYPlane<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
@@ -708,9 +708,9 @@ TEST(WarpAffine, MirrorOnXYPlaneGray16Reference)
 
 TEST(WarpAffine, MirrorOnXYPlaneGray8IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestMirrorOnXYPlane<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
@@ -782,9 +782,9 @@ static void TestMirrorOnXZPlane(IWarpAffine* warp_affine)
 
 TEST(WarpAffine, MirrorOnXZPlaneGray16IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestMirrorOnXZPlane<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
@@ -797,9 +797,9 @@ TEST(WarpAffine, MirrorOnXZPlaneGray16Reference)
 
 TEST(WarpAffine, MirrorOnXZPlaneGray8IPP)
 {
-    #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
-    #endif
+#endif
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
     TestMirrorOnXZPlane<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
@@ -811,3 +811,255 @@ TEST(WarpAffine, MirrorOnXZPlaneGray8Reference)
 }
 
 // ----------------------------------------------------------------------------
+
+template<typename t, libCZI::PixelType t_pixeltype>
+static void ExtractAllPixelsAndCheck(WarpAffineImplementation warpaffine_implementation, Interpolation interpolation)
+{
+    const auto warp_affine = CreateWarpAffine(warpaffine_implementation);
+
+    static const t source_data[2 * 2 * 3] =
+    {
+        10, 11, /* (0,0,0)   (1,0,0) */
+        20, 21, /* (0,1,0)   (1,1,0) */
+
+        30, 51, /* (0,0,1)   (1,0,1) */
+        31, 61, /* (0,1,1)   (1,1,1) */
+
+        40, 71, /* (0,0,2)   (1,0,2) */
+        41, 72, /* (0,1,2)   (1,1,2) */
+    };
+
+    Brick source_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    CopyIntoBrick(source_brick, source_data);
+
+    Brick destination_brick = Utilities::CreateBrick(t_pixeltype, 1, 1, 1);
+
+    Eigen::Matrix4d transformation_matrix;
+    transformation_matrix <<
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1;
+
+    for (int z = 0; z < 3; ++z)
+    {
+        for (int y = 0; y < 2; ++y)
+        {
+            for (int x = 0; x < 2; ++x)
+            {
+                IntPos3 position_destination_brick{ x, y, z };
+                warp_affine->Execute(
+                    transformation_matrix,
+                    position_destination_brick,
+                    interpolation,
+                    source_brick,
+                    destination_brick);
+                const t result_pixel = *(static_cast<t*>(destination_brick.data.get()) + 0);
+                const t expected_pixel = *(static_cast<const t*>(source_brick.data.get()) + (z * 4 + y * 2 + x));
+                EXPECT_EQ(result_pixel, expected_pixel) << "Not the expected result at destination position (" <<
+                    position_destination_brick.x_position << "," <<
+                    position_destination_brick.y_position << "," <<
+                    position_destination_brick.z_position << ")";
+            }
+        }
+    }
+}
+
+TEST(WarpAffine, ExtractAllPixelsAndCheckGray8ReferenceNearestNeighbor)
+{
+    // we put the destination volume at all pixels of the source volume one after another, and check that the extracted pixel is the expected one
+    ExtractAllPixelsAndCheck<uint8_t, PixelType::Gray8>(WarpAffineImplementation::kReference, Interpolation::kNearestNeighbor);
+}
+
+TEST(WarpAffine, ExtractAllPixelsAndCheckGray16ReferenceNearestNeighbor)
+{
+    // we put the destination volume at all pixels of the source volume one after another, and check that the extracted pixel is the expected one
+    ExtractAllPixelsAndCheck<uint16_t, PixelType::Gray16>(WarpAffineImplementation::kReference, Interpolation::kNearestNeighbor);
+}
+
+TEST(WarpAffine, ExtractAllPixelsAndCheckGray8ReferenceTriLinear)
+{
+    // we put the destination volume at all pixels of the source volume one after another, and check that the extracted pixel is the expected one
+    ExtractAllPixelsAndCheck<uint8_t, PixelType::Gray8>(WarpAffineImplementation::kReference, Interpolation::kBilinear);
+}
+
+TEST(WarpAffine, ExtractAllPixelsAndCheckGray16ReferenceTriLinear)
+{
+    // we put the destination volume at all pixels of the source volume one after another, and check that the extracted pixel is the expected one
+    ExtractAllPixelsAndCheck<uint16_t, PixelType::Gray16>(WarpAffineImplementation::kReference, Interpolation::kBilinear);
+}
+
+// ----------------------------------------------------------------------------
+
+TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceNearestNeighbor)
+{
+    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+
+    static const uint8_t source_data[2 * 2 * 3] =
+    {
+        10, 11, /* (0,0,0)   (1,0,0) */
+        20, 21, /* (0,1,0)   (1,1,0) */
+
+        30, 51, /* (0,0,1)   (1,0,1) */
+        31, 61, /* (0,1,1)   (1,1,1) */
+
+        40, 71, /* (0,0,2)   (1,0,2) */
+        41, 72, /* (0,1,2)   (1,1,2) */
+    };
+
+    Brick source_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+    CopyIntoBrick(source_brick, source_data);
+
+    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray8, 1, 1, 1);
+
+    Eigen::Matrix4d transformation_matrix;
+    transformation_matrix <<
+        1, 0, 0, -0.25, // we are off by a quarter pixel in x, y and z - should still get the same pixel as before,
+        0, 1, 0, -0.25, // because it remains to be the "nearest" pixel
+        0, 0, 1, -0.25,
+        0, 0, 0, 1;
+
+    for (int z = 0; z < 3; ++z)
+    {
+        for (int y = 0; y < 2; ++y)
+        {
+            for (int x = 0; x < 2; ++x)
+            {
+                IntPos3 position_destination_brick{ x, y, z };
+                warp_affine->Execute(
+                    transformation_matrix,
+                    position_destination_brick,
+                    Interpolation::kNearestNeighbor,
+                    source_brick,
+                    destination_brick);
+                const uint8_t result_pixel = *(static_cast<uint8_t*>(destination_brick.data.get()) + 0);
+                const uint8_t expected_pixel = *(static_cast<const uint8_t*>(source_brick.data.get()) + (z * 4 + y * 2 + x));
+                EXPECT_EQ(result_pixel, expected_pixel) << "Not the expected result at destination position (" <<
+                    position_destination_brick.x_position << "," <<
+                    position_destination_brick.y_position << "," <<
+                    position_destination_brick.z_position << ")";
+            }
+        }
+    }
+}
+
+TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceTriLinear)
+{
+    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+
+    static const uint8_t source_data[2 * 2 * 3] =
+    {
+        10, 11, /* (0,0,0)   (1,0,0) */
+        20, 21, /* (0,1,0)   (1,1,0) */
+
+        30, 51, /* (0,0,1)   (1,0,1) */
+        31, 61, /* (0,1,1)   (1,1,1) */
+
+        40, 71, /* (0,0,2)   (1,0,2) */
+        41, 72, /* (0,1,2)   (1,1,2) */
+    };
+
+    Brick source_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+    CopyIntoBrick(source_brick, source_data);
+
+    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray8, 1, 1, 1);
+
+    Eigen::Matrix4d transformation_matrix;
+    transformation_matrix <<
+        1, 0, 0, 0.25, // we are off by a quarter pixel in x, y and z - expectation is
+        0, 1, 0, 0.25, // that when sampling "one pixel without the border", we replicate
+        0, 0, 1, 0.25, // the pixel at the border
+        0, 0, 0, 1;
+
+    static const uint8_t expected_result_data[2 * 2 * 3] =
+    {
+        10, 11, /* (0,0,0)   (1,0,0) */
+        18, 18, /* (0,1,0)   (1,1,0) */
+
+        25, 37, /* (0,0,1)   (1,0,1) */
+        27, 43, /* (0,1,1)   (1,1,1) */
+
+        38, 59, /* (0,0,2)   (1,0,2) */
+        38, 61, /* (0,1,2)   (1,1,2) */
+    };
+
+    for (int z = 0; z < 3; ++z)
+    {
+        for (int y = 0; y < 2; ++y)
+        {
+            for (int x = 0; x < 2; ++x)
+            {
+                IntPos3 position_destination_brick{ x, y, z };
+                warp_affine->Execute(
+                    transformation_matrix,
+                    position_destination_brick,
+                    Interpolation::kBilinear,
+                    source_brick,
+                    destination_brick);
+                const uint8_t result_pixel = *(static_cast<uint8_t*>(destination_brick.data.get()) + 0);
+                const uint8_t expected_pixel = expected_result_data[z * 4 + y * 2 + x];
+                EXPECT_EQ(result_pixel, expected_pixel) << "Not the expected result at destination position (" <<
+                    position_destination_brick.x_position << "," <<
+                    position_destination_brick.y_position << "," <<
+                    position_destination_brick.z_position << ")";
+            }
+        }
+    }
+}
+
+
+TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8IppBicubic)
+{
+#if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
+    GTEST_SKIP() << "Skipping because IPP is not available";
+#endif
+
+    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kIPP);
+
+    static const uint8_t source_data[2 * 2 * 3] =
+    {
+        10, 11, /* (0,0,0)   (1,0,0) */
+        20, 21, /* (0,1,0)   (1,1,0) */
+
+        30, 51, /* (0,0,1)   (1,0,1) */
+        31, 61, /* (0,1,1)   (1,1,1) */
+
+        40, 71, /* (0,0,2)   (1,0,2) */
+        41, 72, /* (0,1,2)   (1,1,2) */
+    };
+
+    Brick source_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+    CopyIntoBrick(source_brick, source_data);
+
+    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+
+    Eigen::Matrix4d transformation_matrix;
+    transformation_matrix <<
+        1, 0, 0, 0.25, // we are off by a quarter pixel in x, y and z - expectation is
+        0, 1, 0, 0.25, // that when sampling "one pixel without the border", we replicate
+        0, 0, 1, 0.25, // the pixel at the border
+        0, 0, 0, 1;
+
+    IntPos3 position_destination_brick{ 0, 0, 0 };
+    warp_affine->Execute(
+        transformation_matrix,
+        position_destination_brick,
+        Interpolation::kBicubic,
+        source_brick,
+        destination_brick);
+
+    static const uint8_t expected_result_data[2 * 2 * 3] =
+    {
+        0, 0, /* (0,0,0)   (1,0,0) */
+        0, 0, /* (0,1,0)   (1,1,0) */
+
+        0, 0, /* (0,0,1)   (1,0,1) */
+        0, 43, /* (0,1,1)   (1,1,1) */
+
+        0, 0, /* (0,0,2)   (1,0,2) */
+        0, 61, /* (0,1,2)   (1,1,2) */
+    };
+
+    const void* result_data = destination_brick.data.get();
+    EXPECT_EQ(memcmp(expected_result_data, destination_brick.data.get(), sizeof(expected_result_data)), 0);
+}
