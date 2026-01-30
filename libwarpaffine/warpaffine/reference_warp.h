@@ -61,6 +61,7 @@ private:
             position.y_position < 0 || position.y_position >= brick_info.height - 1 ||
             position.z_position < 0 || position.z_position >= brick_info.depth - 1)
         {
+            // check whether it is just one pixel outside - which we want to allow for trilinear interpolation (by clamping)
             if (position.x_position >= -1 && position.x_position <= brick_info.width &&
                 position.y_position >= -1 && position.y_position <= brick_info.height &&
                 position.z_position >= -1 && position.z_position <= brick_info.depth)
@@ -120,6 +121,14 @@ private:
         }
     }
 
+    /// Sample with linear interpolation - this method assumes and requires that the sampling point is
+    /// inside the volume AND that the pixel-position +1 is also inside the volume.
+    ///
+    /// \tparam	t	Generic type parameter.
+    /// \param 	brick   	The brick.
+    /// \param 	position	The sampling position.
+    ///
+    /// \returns	The sampled value.
     template <typename t>
     static t SampleWithLinearInterpolation(const Brick& brick, const DoublePos3& position)
     {
@@ -158,6 +167,14 @@ private:
         return (c < 0) ? 0 : c > static_cast<double>(std::numeric_limits<t>::max()) ? std::numeric_limits<t>::max() : static_cast<t>(lround(c));
     }
 
+    /// Sample with linear interpolation - where this method allows for the sampling point to be
+    /// outside of the volume by one pixel.
+    ///
+    /// \tparam	t	Generic type parameter.
+    /// \param 	brick   	The brick.
+    /// \param 	position	The sampling position.
+    ///
+    /// \returns	The sampled value.
     template <typename t>
     static t SampleWithLinearInterpolationOutsideOfVolume(const Brick& brick, const DoublePos3& position)
     {
