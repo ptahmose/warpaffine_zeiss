@@ -16,10 +16,8 @@ set(LIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3 ON CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
   libCZI
-  #GIT_REPOSITORY https://github.com/ptahmose/libczi-zeiss.git
-  GIT_REPOSITORY 
-  #GIT_TAG        474670909c741a51c71cf1a5bcace681d5aa4062	# origin/main as of 1/23/2026
-  GIT_TAG        260f04a72ce7fca99a7bb3058723456efb6fc5f7 # branch jbl/remove_version_requirement_for_eigen3
+  GIT_REPOSITORY https://github.com/ptahmose/libczi-zeiss.git
+  GIT_TAG        jbl/remove_version_requirement_for_eigen3
 )
 
 message(STATUS "Fetching libCZI")
