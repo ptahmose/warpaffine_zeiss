@@ -43,7 +43,7 @@ private:
         kOutside,
     };
 
-    static inline bool IsInsideBrickForTriLinear(const BrickInfo& brick_info, const DoublePos3& position)
+    static bool IsInsideBrickForTriLinear(const BrickInfo& brick_info, const DoublePos3& position)
     {
         if (position.x_position < -1 || position.x_position >= brick_info.width /* - 1*/ ||
             position.y_position < -1 || position.y_position >= brick_info.height/* - 1 */ ||
@@ -55,7 +55,7 @@ private:
         return true;
     }
 
-    static inline PixelPosition GetPixelPositionForTriLinear(const BrickInfo& brick_info, const DoublePos3& position)
+    static PixelPosition GetPixelPositionForTriLinear(const BrickInfo& brick_info, const DoublePos3& position)
     {
         if (position.x_position < 0 || position.x_position >= brick_info.width - 1 ||
             position.y_position < 0 || position.y_position >= brick_info.height - 1 ||
@@ -74,7 +74,7 @@ private:
         return PixelPosition::kInside;
     }
 
-    static inline bool IsInsideBrick(const BrickInfo& brick_info, const IntPos3& position)
+    static bool IsInsideBrick(const BrickInfo& brick_info, const IntPos3& position)
     {
         if (position.x_position <= -1 || position.x_position >= brick_info.width ||
             position.y_position <= -1 || position.y_position >= brick_info.height ||
@@ -87,7 +87,7 @@ private:
     }
 
     template <typename t>
-    static inline void NearestNeighborWarp(const Brick& source_brick, const Brick& destination_brick, const Eigen::Matrix4d& transformation_inverse)
+    static void NearestNeighborWarp(const Brick& source_brick, const Brick& destination_brick, const Eigen::Matrix4d& transformation_inverse)
     {
         for (uint32_t z = 0; z < destination_brick.info.depth; ++z)
         {
@@ -121,7 +121,7 @@ private:
     }
 
     template <typename t>
-    static inline t SampleWithLinearInterpolation(const Brick& brick, const DoublePos3& position)
+    static t SampleWithLinearInterpolation(const Brick& brick, const DoublePos3& position)
     {
         // -> https://en.wikipedia.org/wiki/Trilinear_interpolation
         double dummy;
@@ -159,7 +159,7 @@ private:
     }
 
     template <typename t>
-    static inline t SampleWithLinearInterpolationOutsideOfVolume(const Brick& brick, const DoublePos3& position)
+    static t SampleWithLinearInterpolationOutsideOfVolume(const Brick& brick, const DoublePos3& position)
     {
         // -> https://en.wikipedia.org/wiki/Trilinear_interpolation
         double dummy;
@@ -175,11 +175,11 @@ private:
         };
 
         int x_position_to_sample = std::max(position_rounded_down.x_position, 0);
-        int x_position_plus_one_to_sample = std::min(position_rounded_down.x_position + 1, (int)(brick.info.width - 1));
+        int x_position_plus_one_to_sample = std::min(position_rounded_down.x_position + 1, static_cast<int>(brick.info.width - 1));
         int y_position_to_sample = std::max(position_rounded_down.y_position, 0);
-        int y_position_plus_one_to_sample = std::min(position_rounded_down.y_position + 1, (int)(brick.info.height - 1));
+        int y_position_plus_one_to_sample = std::min(position_rounded_down.y_position + 1, static_cast<int>(brick.info.height - 1));
         int z_position_to_sample = std::max(position_rounded_down.z_position, 0);
-        int z_position_plus_one_to_sample = std::min(position_rounded_down.z_position + 1, (int)(brick.info.depth - 1));
+        int z_position_plus_one_to_sample = std::min(position_rounded_down.z_position + 1, static_cast<int>(brick.info.depth - 1));
 
         const t c000 = *static_cast<const t*>(brick.GetConstPointerToPixel(x_position_to_sample, y_position_to_sample, z_position_to_sample));
         const t c100 = *static_cast<const t*>(brick.GetConstPointerToPixel(x_position_plus_one_to_sample, y_position_to_sample, z_position_to_sample));
@@ -204,7 +204,7 @@ private:
     }
 
     template <typename t>
-    static inline void TriLinearWarp(const Brick& source_brick, const Brick& destination_brick, const Eigen::Matrix4d& transformation_inverse)
+    static void TriLinearWarp(const Brick& source_brick, const Brick& destination_brick, const Eigen::Matrix4d& transformation_inverse)
     {
         for (uint32_t z = 0; z < destination_brick.info.depth; ++z)
         {
@@ -235,10 +235,8 @@ private:
                         break;
                     }
                     case PixelPosition::kOutside:
-                    {
                         *dest_pixel = 0;
                         break;
-                    }
                     }
                 }
             }

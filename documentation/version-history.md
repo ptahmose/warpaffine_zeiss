@@ -16,3 +16,4 @@ version history                 {#version_history}
  0.5.6              | [16](https://github.com/ZEISS/warpaffine/pull/16) | fix for malfunction if source document contains a pyramid
  0.6.0              | [17](https://github.com/ZEISS/warpaffine/pull/17) | add functionality to copy stage-position metadata from source document
  0.6.1              | [18](https://github.com/ZEISS/warpaffine/pull/18) | fix a race-condition (that could result in a corrupted destination CZI-document)
+ 0.6.2              | [19](https://github.com/ZEISS/warpaffine/pull/19) | use a "replicate-1-pixel-border" for reference-warp calculation to avoid black-pixel-artifacts
