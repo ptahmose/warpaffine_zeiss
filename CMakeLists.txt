@@ -143,6 +143,8 @@ FetchContent_Declare(
   GIT_TAG        11.0.0 
   GIT_SHALLOW    TRUE
 )
+# ensure tinyxml2 tests are not generated when pulled via FetchContent
+set(tinyxml2_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(tinyxml2)
 
