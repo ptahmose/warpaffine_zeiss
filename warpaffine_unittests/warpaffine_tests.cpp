@@ -891,59 +891,6 @@ TEST(WarpAffine, ExtractAllPixelsAndCheckGray16ReferenceTriLinear)
 
 // ----------------------------------------------------------------------------
 
-template<typename t, libCZI::PixelType t_pixeltype>
-static void SampleQuarterOfAPixelOutsideOfVolume(WarpAffineImplementation warpaffine_implementation, Interpolation interpolation)
-{
-    const auto warp_affine = CreateWarpAffine(warpaffine_implementation);
-
-    static const t source_data[2 * 2 * 3] =
-    {
-        10, 11, /* (0,0,0)   (1,0,0) */
-        20, 21, /* (0,1,0)   (1,1,0) */
-
-        30, 51, /* (0,0,1)   (1,0,1) */
-        31, 61, /* (0,1,1)   (1,1,1) */
-
-        40, 71, /* (0,0,2)   (1,0,2) */
-        41, 72, /* (0,1,2)   (1,1,2) */
-    };
-
-    Brick source_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
-    CopyIntoBrick(source_brick, source_data);
-
-    Brick destination_brick = Utilities::CreateBrick(t_pixeltype, 1, 1, 1);
-
-    Eigen::Matrix4d transformation_matrix;
-    transformation_matrix <<
-        1, 0, 0, -0.25,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1;
-
-    for (int z = 0; z < 3; ++z)
-    {
-        for (int y = 0; y < 2; ++y)
-        {
-            for (int x = 0; x < 2; ++x)
-            {
-                IntPos3 position_destination_brick{ x, y, z };
-                warp_affine->Execute(
-                    transformation_matrix,
-                    position_destination_brick,
-                    interpolation,
-                    source_brick,
-                    destination_brick);
-                const t result_pixel = *(static_cast<t*>(destination_brick.data.get()) + 0);
-                const t expected_pixel = *(static_cast<const t*>(source_brick.data.get()) + (z * 4 + y * 2 + x));
-                EXPECT_EQ(result_pixel, expected_pixel) << "Not the expected result at destination position (" <<
-                    position_destination_brick.x_position << "," <<
-                    position_destination_brick.y_position << "," <<
-                    position_destination_brick.z_position << ")";
-            }
-        }
-    }
-}
-
 TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceNearestNeighbor)
 {
     const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
@@ -1060,7 +1007,8 @@ TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceTriLinear)
     }
 }
 
-TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8IppNearestNeighbor)
+
+TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8IppBicubic)
 {
 #if !WARPAFFINEUNITTESTS_INTELPERFORMANCEPRIMITIVES_AVAILABLE
     GTEST_SKIP() << "Skipping because IPP is not available";
@@ -1099,4 +1047,19 @@ TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8IppNearestNeighbor)
         Interpolation::kBicubic,
         source_brick,
         destination_brick);
+
+    static const uint8_t expected_result_data[2 * 2 * 3] =
+    {
+        0, 0, /* (0,0,0)   (1,0,0) */
+        0, 0, /* (0,1,0)   (1,1,0) */
+
+        0, 0, /* (0,0,1)   (1,0,1) */
+        0, 43, /* (0,1,1)   (1,1,1) */
+
+        0, 0, /* (0,0,2)   (1,0,2) */
+        0, 61, /* (0,1,2)   (1,1,2) */
+    };
+
+    const void* result_data = destination_brick.data.get();
+    EXPECT_EQ(memcmp(expected_result_data, destination_brick.data.get(), sizeof(expected_result_data)), 0);
 }
