@@ -45,9 +45,9 @@ private:
 
     static bool IsInsideBrickForTriLinear(const BrickInfo& brick_info, const DoublePos3& position)
     {
-        if (position.x_position < -1 || position.x_position >= brick_info.width /* - 1*/ ||
-            position.y_position < -1 || position.y_position >= brick_info.height/* - 1 */ ||
-            position.z_position < -1 || position.z_position >= brick_info.depth /*- 1*/)
+        if (position.x_position < -1 || position.x_position >= brick_info.width ||
+            position.y_position < -1 || position.y_position >= brick_info.height ||
+            position.z_position < -1 || position.z_position >= brick_info.depth)
         {
             return false;
         }
