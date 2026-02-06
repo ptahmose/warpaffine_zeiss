@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include "utilities.h"
+#include "testutilities.h"
+#include <warpafine_unittests_config.h>
 #include <cstdint>
 #include <memory>
 
@@ -12,7 +13,7 @@
 
 using namespace std;
 
-Utilities::GuardedBlock Utilities::AllocateWithGuardPageBehind(size_t size, size_t size_of_guard_block)
+TestUtilities::GuardedBlock TestUtilities::AllocateWithGuardPageBehind(size_t size, size_t size_of_guard_block)
 {
 #if WARPAFFINEUNITTESTS_WIN32_ENVIRONMENT
     // determine page-size
@@ -61,7 +62,7 @@ Utilities::GuardedBlock Utilities::AllocateWithGuardPageBehind(size_t size, size
 #endif
 }
 
-Utilities::GuardedBlock Utilities::AllocateWithGuardPageBefore(size_t size, size_t size_of_guard_block)
+TestUtilities::GuardedBlock TestUtilities::AllocateWithGuardPageBefore(size_t size, size_t size_of_guard_block)
 {
 #if WARPAFFINEUNITTESTS_WIN32_ENVIRONMENT
     // determine page-size
@@ -110,7 +111,7 @@ Utilities::GuardedBlock Utilities::AllocateWithGuardPageBefore(size_t size, size
 
 /// Free the "guarded memory block".
 /// \param [in] block The guarded memory block.
-void Utilities::FreeGuardedBlock(const GuardedBlock& block)
+void TestUtilities::FreeGuardedBlock(const GuardedBlock& block)
 {
 #if WARPAFFINEUNITTESTS_WIN32_ENVIRONMENT
     VirtualFree(block.baseAddress, 0, MEM_RELEASE);
@@ -120,17 +121,17 @@ void Utilities::FreeGuardedBlock(const GuardedBlock& block)
 #endif
 }
 
-/*static*/Brick Utilities::CreateBrickWithGuardPageBefore(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth, size_t size_of_guard_area/* = 1*/)
+/*static*/Brick TestUtilities::CreateBrickWithGuardPageBefore(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth, size_t size_of_guard_area/* = 1*/)
 {
-    return CreateBrickWithGuardPage(pixel_type, width, height, depth, size_of_guard_area, Utilities::AllocateWithGuardPageBefore);
+    return CreateBrickWithGuardPage(pixel_type, width, height, depth, size_of_guard_area, TestUtilities::AllocateWithGuardPageBefore);
 }
 
-/*static*/Brick Utilities::CreateBrickWithGuardPageBehind(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth, size_t size_of_guard_area/* = 1*/)
+/*static*/Brick TestUtilities::CreateBrickWithGuardPageBehind(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth, size_t size_of_guard_area/* = 1*/)
 {
-    return CreateBrickWithGuardPage(pixel_type, width, height, depth, size_of_guard_area, Utilities::AllocateWithGuardPageBehind);
+    return CreateBrickWithGuardPage(pixel_type, width, height, depth, size_of_guard_area, TestUtilities::AllocateWithGuardPageBehind);
 }
 
-/*static*/Brick Utilities::CreateBrick(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth)
+/*static*/Brick TestUtilities::CreateBrick(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth)
 {
     Brick brick;
     brick.info.pixelType = pixel_type;
@@ -150,7 +151,7 @@ void Utilities::FreeGuardedBlock(const GuardedBlock& block)
     return brick;
 }
 
-/*static*/Brick Utilities::CreateBrickWithGuardPage(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth, size_t size_of_guard_area, const std::function<GuardedBlock(size_t, size_t)>& allocate_guarded_block)
+/*static*/Brick TestUtilities::CreateBrickWithGuardPage(libCZI::PixelType pixel_type, std::uint32_t width, std::uint32_t height, std::uint32_t depth, size_t size_of_guard_area, const std::function<GuardedBlock(size_t, size_t)>& allocate_guarded_block)
 {
     Brick brick;
     brick.info.pixelType = pixel_type;
@@ -168,7 +169,7 @@ void Utilities::FreeGuardedBlock(const GuardedBlock& block)
         allocation.Get(),
         [=](void* vp)
         {
-            Utilities::FreeGuardedBlock(allocation);
+            TestUtilities::FreeGuardedBlock(allocation);
         });
 
     return brick;

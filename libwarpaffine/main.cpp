@@ -522,6 +522,13 @@ int libmain(int argc, char** _argv)
 
         DeskewDocumentInfo document_info = CziHelpers::GetDocumentInfo(get<0>(reader_and_stream).get());
 
+        // Apply illumination angle override from command line if specified
+        const auto illumination_angle_override = app_context.GetCommandLineOptions().GetIlluminationAngleOverride();
+        if (illumination_angle_override.has_value())
+        {
+            document_info.SetIlluminationAngleInDegrees(illumination_angle_override.value());
+        }
+
         auto transformation_matrix = DeskewHelpers::GetTransformationMatrixSoThatEdgePointIsAtOrigin(
             app_context.GetCommandLineOptions().GetTypeOfOperation(),
             document_info);

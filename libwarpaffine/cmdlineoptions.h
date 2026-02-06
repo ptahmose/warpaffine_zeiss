@@ -6,6 +6,7 @@
 
 #include <string>
 #include <map>
+#include <optional>
 #include <LibWarpAffine_Config.h>
 #include "operationtype.h"
 #include "cmdlineoptions_enums.h"
@@ -44,6 +45,7 @@ private:
     bool copy_attachments_from_source_to_destination_{ true };
     std::string source_stream_class_;
     std::map<int, libCZI::StreamsFactory::Property> property_bag_for_stream_class;
+    std::optional<double> illumination_angle_degrees_;
 public:
     /// Values that represent the result of the "Parse"-operation.
     enum class ParseResult
@@ -92,6 +94,10 @@ public:
     [[nodiscard]] bool GetUseAcquisitionTiles() const { return this->use_acquisition_tiles_; }
     [[nodiscard]] bool GetWriteStagePositionsInSubblockMetadata() const { return this->write_stage_positions_in_subblock_metadata_; }
     [[nodiscard]] bool GetCopyAttachmentsFromSourceToDestination() const { return this->copy_attachments_from_source_to_destination_; }
+
+    /// Gets the illumination angle override from command line, if specified.
+    /// \returns The illumination angle in degrees if specified, nullopt otherwise.
+    [[nodiscard]] std::optional<double> GetIlluminationAngleOverride() const { return this->illumination_angle_degrees_; }
 private:
     bool TryParseInputStreamCreationPropertyBag(const std::string& s, std::map<int, libCZI::StreamsFactory::Property>* property_bag);
 };

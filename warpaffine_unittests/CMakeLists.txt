@@ -17,16 +17,17 @@ add_executable(
   warpaffine_unittests
   $<TARGET_OBJECTS:libwarpaffine>
  "brick_enumerator_tests.cpp"
+ "cmdlineoptions_tests.cpp"
  "czi_helpers_tests.cpp" 
  "mem_output_stream.h" 
  "mem_output_stream.cpp"  
  "warpaffine_tests.cpp" 
  "utilities_tests.cpp"
- "utilities.h"
- "utilities.cpp" 
+ "testutilities.h"
+ "testutilities.cpp" 
  "xycoordinate_tests.cpp")
 
-target_include_directories(warpaffine_unittests PRIVATE ${IPP_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${LIBCZI_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(warpaffine_unittests PRIVATE ${IPP_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${LIBCZI_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/../libwarpaffine)
 target_compile_definitions(warpaffine_unittests PRIVATE _LIBCZISTATICLIB)
 set_target_properties(warpaffine_unittests PROPERTIES CXX_STANDARD 17)
 IF(WIN32) 
@@ -68,25 +69,29 @@ configure_file (
 
 # On Windows, we want to copy the tbb-runtime to the destination folder. There is no
 # supported way to link it statically, so this DLL needs to be provided with the executable.
-IF(WIN32) 
+IF(WIN32)
   if (CMAKE_BUILD_TYPE MATCHES "Debug")
       set(_TBB_DLL_TO_SEARCH_FOR "tbb12_debug.dll")
   else()
       set(_TBB_DLL_TO_SEARCH_FOR "tbb12.dll")
   endif()
-  
+
   # we try to find the tbb-dll either as part of an "oneAPI" installation or from a vcpkg-provided version
   find_file(TBB_DLL_TO_COPY
              ${_TBB_DLL_TO_SEARCH_FOR}
              HINTS "${TBB_DIR}/../../../redist/${_tbb_subdir}/" "${TBB_DIR}/../../bin")
+  if (NOT TBB_DLL_TO_COPY AND TARGET TBB::tbb)
+    set(TBB_DLL_TO_COPY "$<TARGET_FILE:TBB::tbb>")
+  endif()
   message(STATUS "-> TBB_DLL_TO_COPY: '${TBB_DLL_TO_COPY}'")
+
 
   if (TBB_DLL_TO_COPY)  # if we found the tbb12-dll, we copy it to the binary folder
     add_custom_command(
           TARGET warpaffine_unittests POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different
                   "${TBB_DLL_TO_COPY}"
-                  "${CMAKE_CURRENT_BINARY_DIR}")
+                  "$<TARGET_FILE_DIR:warpaffine_unittests>")
   endif()
 endif()
 

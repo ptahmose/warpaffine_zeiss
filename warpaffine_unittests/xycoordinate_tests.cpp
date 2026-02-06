@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 #include <gtest/gtest.h>
-#include "utilities.h"
 
 #include "../libwarpaffine/document_info.h"
 #include "../libwarpaffine/deskew_helpers.h"

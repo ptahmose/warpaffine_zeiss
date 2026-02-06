@@ -3,14 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 #include "deskew_helpers.h"
-#define _USE_MATH_DEFINES
+#include "utilities.h"
 #include <cmath>
 #include <iostream>
 #include <algorithm>
-
-#ifndef M_PI
-#define M_PI (3.14159265358979323846)
-#endif
 
 using namespace Eigen;
 using namespace std;
@@ -85,16 +81,6 @@ using namespace std;
     default:
         throw invalid_argument("unknown operation-type");
     }
-}
-
-/*static*/double DeskewHelpers::DegreesToRadians(double angle_in_degrees)
-{
-    return angle_in_degrees / 180 * M_PI;
-}
-
-/*static*/double DeskewHelpers::RadiansToDegrees(double angle_in_radians)
-{
-    return angle_in_radians / M_PI * 180;
 }
 
 /*static*/Eigen::Matrix4d DeskewHelpers::GetScalingMatrix(double x_scale, double y_scale, double z_scale)
@@ -189,7 +175,7 @@ using namespace std;
     scaling_matrix << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, factor_to_scale_z, 0, 0, 0, 0, 1;
 
     // 4. And now we rotate the face of the z-stack to be parallel to the cover glass
-    const auto rotation_around_x_axis = GetRotationAroundXAxis(document_info.illumination_angle_in_radians + 0.5 * M_PI);
+    const auto rotation_around_x_axis = GetRotationAroundXAxis(document_info.illumination_angle_in_radians + Utilities::DegreesToRadians(90.0));
 
     // construct the full transformation matrix
     Matrix4d m = rotation_around_x_axis * scaling_matrix * shearing_matrix * flip;
@@ -198,7 +184,7 @@ using namespace std;
     {
         // this is corresponding to the ZEN-option "XyTargetIsRotatedBy90":
         //  we rotate around the z-axis by 90 degree (as the final step)
-        m = GetRotationAroundZAxis(DegreesToRadians(90)) * m;
+        m = GetRotationAroundZAxis(Utilities::DegreesToRadians(90.0)) * m;
     }
 
     return m;

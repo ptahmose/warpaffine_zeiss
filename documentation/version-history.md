@@ -17,3 +17,4 @@ version history                 {#version_history}
  0.6.0              | [17](https://github.com/ZEISS/warpaffine/pull/17) | add functionality to copy stage-position metadata from source document
  0.6.1              | [18](https://github.com/ZEISS/warpaffine/pull/18) | fix a race-condition (that could result in a corrupted destination CZI-document)
  0.6.2              | [19](https://github.com/ZEISS/warpaffine/pull/19) | use a "replicate-1-pixel-border" for reference-warp calculation to avoid black-pixel-artifacts
+ 0.7.0              | [20](https://github.com/ZEISS/warpaffine/pull/20) | add --illumination-angle CLI parameter for configurable deskew angle

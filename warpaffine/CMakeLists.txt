@@ -73,12 +73,15 @@ IF(WIN32)
   find_file(TBB_DLL_TO_COPY
              ${_TBB_DLL_TO_SEARCH_FOR}
              HINTS "${TBB_DIR}/../../../redist/${_tbb_subdir}/" "${TBB_DIR}/../../bin")
+  if (NOT TBB_DLL_TO_COPY AND TARGET TBB::tbb)
+    set(TBB_DLL_TO_COPY "$<TARGET_FILE:TBB::tbb>")
+  endif()
   message(STATUS "-> TBB_DLL_TO_COPY: '${TBB_DLL_TO_COPY}'")
 
   if (TBB_DLL_TO_COPY)  # if we found the tbb12-dll, we copy it to the binary folder
     add_custom_command(
           TARGET warpaffine POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different
                   "${TBB_DLL_TO_COPY}"
                   "${CMAKE_CURRENT_BINARY_DIR}")
   endif()

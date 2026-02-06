@@ -6,7 +6,7 @@
 #include <warpafine_unittests_config.h>
 #include "../libwarpaffine/warpaffine/IWarpAffine.h"
 
-#include "utilities.h"
+#include "testutilities.h"
 
 #include <math.h>
 
@@ -84,14 +84,14 @@ static void TestMoveOnePixelToTheRightGray16(IWarpAffine* warp_affine)
     // we prepare a brick with 2 slices and the following content:
     // slice 0: 1  2   slice 1: 5 6
     //          3  4            7 8
-    Brick source_brick = Utilities::CreateBrick(PixelType::Gray16, 2, 2, 2);
+    Brick source_brick = TestUtilities::CreateBrick(PixelType::Gray16, 2, 2, 2);
     uint16_t* pointer_voxel = static_cast<uint16_t*>(source_brick.data.get());
     for (std::uint16_t i = 0; i < 8; ++i)
     {
         *(pointer_voxel + i) = 1 + i;
     }
 
-    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray16, 2, 2, 2);
+    Brick destination_brick = TestUtilities::CreateBrick(PixelType::Gray16, 2, 2, 2);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 0 },
@@ -113,14 +113,14 @@ static void TestMoveOnePixelToTheRightGray8(IWarpAffine* warp_affine)
     // we prepare a brick with 2 slices and the following content:
     // slice 0: 1  2   slice 1: 5 6
     //          3  4            7 8
-    Brick source_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 2);
+    Brick source_brick = TestUtilities::CreateBrick(PixelType::Gray8, 2, 2, 2);
     uint8_t* pointer_voxel = static_cast<uint8_t*>(source_brick.data.get());
     for (std::uint8_t i = 0; i < 8; ++i)
     {
         *(pointer_voxel + i) = 1 + i;
     }
 
-    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 2);
+    Brick destination_brick = TestUtilities::CreateBrick(PixelType::Gray8, 2, 2, 2);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 0 },
@@ -171,7 +171,7 @@ static void TestMoveOnePixelToTheLeftGray16(IWarpAffine* warp_affine)
     Eigen::Matrix4d transformation_matrix;
     transformation_matrix << 1, 0, 0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1;
 
-    Brick source_brick = Utilities::CreateBrick(PixelType::Gray16, 2, 2, 2);
+    Brick source_brick = TestUtilities::CreateBrick(PixelType::Gray16, 2, 2, 2);
 
     uint16_t* pointer_voxel = static_cast<uint16_t*>(source_brick.data.get());
     for (std::uint16_t i = 0; i < 8; ++i)
@@ -179,7 +179,7 @@ static void TestMoveOnePixelToTheLeftGray16(IWarpAffine* warp_affine)
         *(pointer_voxel + i) = 1 + i;
     }
 
-    Brick destination_brick = Utilities::CreateBrickWithGuardPageBehind(PixelType::Gray16, 2, 2, 2);
+    Brick destination_brick = TestUtilities::CreateBrickWithGuardPageBehind(PixelType::Gray16, 2, 2, 2);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 0 },
@@ -198,7 +198,7 @@ static void TestMoveOnePixelToTheLeftGray8(IWarpAffine* warp_affine)
     Eigen::Matrix4d transformation_matrix;
     transformation_matrix << 1, 0, 0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1;
 
-    Brick source_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 2);
+    Brick source_brick = TestUtilities::CreateBrick(PixelType::Gray8, 2, 2, 2);
 
     uint8_t* pointer_voxel = static_cast<uint8_t*>(source_brick.data.get());
     for (std::uint16_t i = 0; i < 8; ++i)
@@ -206,7 +206,7 @@ static void TestMoveOnePixelToTheLeftGray8(IWarpAffine* warp_affine)
         *(pointer_voxel + i) = 1 + i;
     }
 
-    Brick destination_brick = Utilities::CreateBrickWithGuardPageBehind(PixelType::Gray8, 2, 2, 2);
+    Brick destination_brick = TestUtilities::CreateBrickWithGuardPageBehind(PixelType::Gray8, 2, 2, 2);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 0 },
@@ -261,14 +261,14 @@ static void MoveOnePixelToTheRightAndUseOffsetForDestination(IWarpAffine* warp_a
     // we prepare a brick with 2 slices and the following content:
     // slice 0: 1  2   slice 1: 5 6
     //          3  4            7 8
-    Brick source_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 2);
+    Brick source_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 2);
     t* pointer_voxel = static_cast<t*>(source_brick.data.get());
     for (t i = 0; i < 8; ++i)
     {
         *(pointer_voxel + i) = 1 + i;
     }
 
-    Brick destination_brick = Utilities::CreateBrick(t_pixeltype, 1, 2, 2);
+    Brick destination_brick = TestUtilities::CreateBrick(t_pixeltype, 1, 2, 2);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 1, 0, 0 },
@@ -335,7 +335,7 @@ static void TestLinearInterpolation2x2x2To1x1(IWarpAffine* warp_affine)
     // we prepare a brick with 2 slices and the following content:
     // slice 0: 1  2   slice 1: 5 6
     //          3  4            7 8
-    const Brick source_brick = Utilities::CreateBrick(PixelType::Gray16, 2, 2, 2);
+    const Brick source_brick = TestUtilities::CreateBrick(PixelType::Gray16, 2, 2, 2);
     uint16_t* pointer_voxel = static_cast<uint16_t*>(source_brick.data.get());
     for (std::uint16_t i = 0; i < 8; ++i)
     {
@@ -345,7 +345,7 @@ static void TestLinearInterpolation2x2x2To1x1(IWarpAffine* warp_affine)
     // then sample one pixel in the middle, using the math from https://en.wikipedia.org/wiki/Trilinear_interpolation
     // this should give us the result 4.5
 
-    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray16, 1, 1, 1);
+    Brick destination_brick = TestUtilities::CreateBrick(PixelType::Gray16, 1, 1, 1);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 0 },
@@ -391,7 +391,7 @@ static void TestRotateBy90DegreeAroundZAxis(IWarpAffine* warp_affine)
         41, 72
     };
 
-    Brick source_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick source_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     CopyIntoBrick(source_brick, source_data);
 
     // Note: It seems that IPP is very susceptible to inaccuracies in this case. If we create the transformation matrix
@@ -405,7 +405,7 @@ static void TestRotateBy90DegreeAroundZAxis(IWarpAffine* warp_affine)
 
     //cout << "Transformation-matrix" << endl << transformation_matrix << endl << endl;
 
-    Brick destination_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick destination_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 0 },
@@ -475,7 +475,7 @@ static void TestRotateBy90DegreeAroundZAxisAndDestinationOffset(IWarpAffine* war
         41, 72
     };
 
-    Brick source_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick source_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     CopyIntoBrick(source_brick, source_data);
 
     // Note: It seems that IPP is very susceptible to inaccuracies in this case. If we create the transformation matrix
@@ -491,7 +491,7 @@ static void TestRotateBy90DegreeAroundZAxisAndDestinationOffset(IWarpAffine* war
         0, 0, 1, 0,
         0, 0, 0, 1;
 
-    Brick destination_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 2);
+    Brick destination_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 2);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 1 },
@@ -559,7 +559,7 @@ static void TestMirrorOnYZPlane(IWarpAffine* warp_affine)
         41, 72
     };
 
-    Brick source_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick source_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     CopyIntoBrick(source_brick, source_data);
 
     /// The transformation matrix is constructed as:
@@ -578,7 +578,7 @@ static void TestMirrorOnYZPlane(IWarpAffine* warp_affine)
         0, 0, 1, 0,
         0, 0, 0, 1;
 
-    Brick destination_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick destination_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 0 },
@@ -649,7 +649,7 @@ static void TestMirrorOnXYPlane(IWarpAffine* warp_affine)
         41, 72
     };
 
-    Brick source_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick source_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     CopyIntoBrick(source_brick, source_data);
 
     /// The transformation matrix is constructed as:
@@ -668,7 +668,7 @@ static void TestMirrorOnXYPlane(IWarpAffine* warp_affine)
         0, 0, -1, 2,
         0, 0, 0, 1;
 
-    Brick destination_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick destination_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 0 },
@@ -738,7 +738,7 @@ static void TestMirrorOnXZPlane(IWarpAffine* warp_affine)
         41, 72
     };
 
-    Brick source_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick source_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     CopyIntoBrick(source_brick, source_data);
 
     /// The transformation matrix is constructed as:
@@ -757,7 +757,7 @@ static void TestMirrorOnXZPlane(IWarpAffine* warp_affine)
         0, 0, 1, 0,
         0, 0, 0, 1;
 
-    Brick destination_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick destination_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     warp_affine->Execute(
         transformation_matrix,
         IntPos3{ 0, 0, 0 },
@@ -829,10 +829,10 @@ static void ExtractAllPixelsAndCheck(WarpAffineImplementation warpaffine_impleme
         41, 72, /* (0,1,2)   (1,1,2) */
     };
 
-    Brick source_brick = Utilities::CreateBrick(t_pixeltype, 2, 2, 3);
+    Brick source_brick = TestUtilities::CreateBrick(t_pixeltype, 2, 2, 3);
     CopyIntoBrick(source_brick, source_data);
 
-    Brick destination_brick = Utilities::CreateBrick(t_pixeltype, 1, 1, 1);
+    Brick destination_brick = TestUtilities::CreateBrick(t_pixeltype, 1, 1, 1);
 
     Eigen::Matrix4d transformation_matrix;
     transformation_matrix <<
@@ -907,10 +907,10 @@ TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceNearestNeighbor)
         41, 72, /* (0,1,2)   (1,1,2) */
     };
 
-    Brick source_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+    Brick source_brick = TestUtilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
     CopyIntoBrick(source_brick, source_data);
 
-    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray8, 1, 1, 1);
+    Brick destination_brick = TestUtilities::CreateBrick(PixelType::Gray8, 1, 1, 1);
 
     Eigen::Matrix4d transformation_matrix;
     transformation_matrix <<
@@ -959,10 +959,10 @@ TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceTriLinear)
         41, 72, /* (0,1,2)   (1,1,2) */
     };
 
-    Brick source_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+    Brick source_brick = TestUtilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
     CopyIntoBrick(source_brick, source_data);
 
-    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray8, 1, 1, 1);
+    Brick destination_brick = TestUtilities::CreateBrick(PixelType::Gray8, 1, 1, 1);
 
     Eigen::Matrix4d transformation_matrix;
     transformation_matrix <<
@@ -1028,10 +1028,10 @@ TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8IppBicubic)
         41, 72, /* (0,1,2)   (1,1,2) */
     };
 
-    Brick source_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+    Brick source_brick = TestUtilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
     CopyIntoBrick(source_brick, source_data);
 
-    Brick destination_brick = Utilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
+    Brick destination_brick = TestUtilities::CreateBrick(PixelType::Gray8, 2, 2, 3);
 
     Eigen::Matrix4d transformation_matrix;
     transformation_matrix <<

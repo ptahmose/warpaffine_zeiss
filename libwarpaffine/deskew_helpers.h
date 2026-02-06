@@ -116,8 +116,6 @@ public:
     /// \returns    The calculated projection.
     static Eigen::Vector2d CalculateProjection(const ProjectionPlaneInfo& projection_plane_info, const Eigen::Vector3d& point);
 private:
-    static double DegreesToRadians(double angle_in_degrees);
-    static double RadiansToDegrees(double angle_in_radians);
     static Eigen::Matrix4d GetScalingMatrix(double x_scale, double y_scale, double z_scale);
     static Eigen::Matrix4d GetTranslationMatrix(double x, double y, double z);
     static Eigen::Matrix4d GetRotationAroundXAxis(double angle_in_radians);

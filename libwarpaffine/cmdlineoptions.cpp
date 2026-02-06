@@ -274,6 +274,7 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
     bool use_acquisition_tiles = false;
     bool do_not_write_stage_positions_in_subblock_metadata = false;
     bool do_not_copy_attachments_from_source_to_destination = false;
+    double illumination_angle_degrees = std::numeric_limits<double>::quiet_NaN();
     app.add_option("-s,--source", source_filename, "The source CZI-file to be processed.")
         ->option_text("SOURCE_FILE")
         ->required();
@@ -351,6 +352,11 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
         "Instruct not to add stage-position to subblock-metadata if provided.");
     app.add_flag("--do_not_copy_attachments_from_source_to_destination", do_not_copy_attachments_from_source_to_destination,
         "Instruct not to copy CZI-attachments from the source to the destination.");
+    app.add_option("--illumination-angle", illumination_angle_degrees,
+        "Override the illumination angle in degrees (0-90). This is the angle between the light sheet "
+        "illumination and the vertical direction. If not specified, the default of 60 degrees is used.")
+        ->option_text("ANGLE")
+        ->check(CLI::Range(0.0, 90.0));
 
     auto formatter = make_shared<CustomFormatter>();
     app.formatter(formatter);
@@ -389,6 +395,10 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
     this->write_stage_positions_in_subblock_metadata_ = !do_not_write_stage_positions_in_subblock_metadata;
     this->copy_attachments_from_source_to_destination_ = !do_not_copy_attachments_from_source_to_destination;
     this->source_stream_class_ = argument_source_stream_class;
+    if (!std::isnan(illumination_angle_degrees))
+    {
+        this->illumination_angle_degrees_ = illumination_angle_degrees;
+    }
 
     if (!override_ram_size_parameter.empty())
     {
