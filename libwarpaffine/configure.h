@@ -16,6 +16,7 @@ class Configure
 private:
     AppContext& app_context_;
     std::uint64_t physical_memory_size_;
+    bool allow_memory_oversubscription_{ false };
 public:
     explicit Configure(AppContext& app_context);
 

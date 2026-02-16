@@ -275,6 +275,7 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
     bool do_not_write_stage_positions_in_subblock_metadata = false;
     bool do_not_copy_attachments_from_source_to_destination = false;
     double illumination_angle_degrees = std::numeric_limits<double>::quiet_NaN();
+    bool allow_memory_oversubscription = false;
     app.add_option("-s,--source", source_filename, "The source CZI-file to be processed.")
         ->option_text("SOURCE_FILE")
         ->required();
@@ -357,6 +358,13 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
         "illumination and the vertical direction. If not specified, the default of 60 degrees is used.")
         ->option_text("ANGLE")
         ->check(CLI::Range(0.0, 90.0));
+    app.add_flag("--allow-memory-oversubscription", allow_memory_oversubscription,
+        "Allow the application to request more memory than physically available, "
+        "relying on the operating system's virtual memory management (paging). "
+        "\\nBy default, the operation aborts if detected physical memory is "
+        "insufficient. With this flag, processing continues using the minimum "
+        "required memory. \\nWarning: May cause significant performance "
+        "degradation or system instability.");
 
     auto formatter = make_shared<CustomFormatter>();
     app.formatter(formatter);
@@ -395,6 +403,7 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
     this->write_stage_positions_in_subblock_metadata_ = !do_not_write_stage_positions_in_subblock_metadata;
     this->copy_attachments_from_source_to_destination_ = !do_not_copy_attachments_from_source_to_destination;
     this->source_stream_class_ = argument_source_stream_class;
+    this->allow_memory_oversubscription_ = allow_memory_oversubscription;
     if (!std::isnan(illumination_angle_degrees))
     {
         this->illumination_angle_degrees_ = illumination_angle_degrees;

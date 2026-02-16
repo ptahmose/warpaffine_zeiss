@@ -10,3 +10,6 @@ Lesson learned here can be transferred to other areas, but this project focuses 
 [architecture](architecture.md)  
 [building](building.md)  
 [usage](usage.md)  
+[notes](notes.md)
+
+[version history](version-history.md)

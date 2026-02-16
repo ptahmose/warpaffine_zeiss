@@ -26,6 +26,8 @@ Configure::Configure(AppContext& app_context) : app_context_(app_context)
         this->physical_memory_size_ = app_context.GetCommandLineOptions().GetMainMemorySizeOverride();
     }
 
+    this->allow_memory_oversubscription_ = app_context.GetCommandLineOptions().GetAllowMemoryOversubscription();
+
     /*
     ostringstream string_stream;
     string_stream << "Physical RAM: " << this->physical_memory_size_ << endl;
@@ -50,14 +52,51 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
     const auto minimal_amount_of_memory_required = memory_characteristics.max_size_of_input_brick + memory_characteristics.max_size_of_output_brick_including_tiling;
     if (minimal_amount_of_memory_required > this->physical_memory_size_)
     {
-        ostringstream string_stream;
-        string_stream.imbue(this->app_context_.GetFormattingLocale());
-        string_stream << "Unable to process this document: This machine is detected to have a main" << endl
-            << "memory of " << Utilities::FormatMemorySize(this->physical_memory_size_) << ", and the minimal amount of memory required to run the" << endl
-            << "operation has been determined as " << Utilities::FormatMemorySize(minimal_amount_of_memory_required) << "." << endl
-            << "This program will exit now. (Check the synopsis for how this check can be disabled)" << endl;
-        this->app_context_.GetLog()->WriteLineStdOut(string_stream.str());
-        return false;
+        if (this->allow_memory_oversubscription_)
+        {
+            // we allow memory oversubscription - but we give a warning about this, and we also adjust the "physical_memory_size_"
+            // to a higher value (which is the value we assume for the rest of the program). We use about 1/12 (~8.3%) above the "minimal_amount_of_memory_required".
+            const uint64_t adjusted_memory_size = minimal_amount_of_memory_required / 12 + minimal_amount_of_memory_required;
+
+            this->app_context_.DoIfVerbosityGreaterOrEqual(
+                MessagesPrintVerbosity::kNormal,
+                [this, minimal_amount_of_memory_required, adjusted_memory_size](auto log)->void
+                    {
+                        ostringstream string_stream;
+                        string_stream.imbue(this->app_context_.GetFormattingLocale());
+                        string_stream << endl;
+                        string_stream << "Warning: Detected physical memory: "
+                            << Utilities::FormatMemorySize(this->physical_memory_size_) << endl
+                            << "         Minimum memory required:  "
+                            << Utilities::FormatMemorySize(minimal_amount_of_memory_required) << endl
+                            << endl
+                            << "Memory oversubscription is enabled. Proceeding with operation assuming" << endl
+                            << Utilities::FormatMemorySize(adjusted_memory_size) << " of available memory." << endl
+                            << endl
+                            << "Note: This may result in significant performance degradation or system" << endl
+                            << "instability due to excessive paging." << endl;
+                        this->app_context_.GetLog()->WriteLineStdOut(string_stream.str());
+                    });
+
+            this->physical_memory_size_ = adjusted_memory_size;
+        }
+        else
+        {
+            this->app_context_.DoIfVerbosityGreaterOrEqual(
+                MessagesPrintVerbosity::kNormal,
+                [this, minimal_amount_of_memory_required](auto log)->void
+                    {
+                        ostringstream string_stream;
+                        string_stream.imbue(this->app_context_.GetFormattingLocale());
+                        string_stream << endl;
+                        string_stream << "Unable to process this document: This machine is detected to have a main" << endl
+                            << "memory of " << Utilities::FormatMemorySize(this->physical_memory_size_) << ", and the minimal amount of memory required to run the" << endl
+                            << "operation has been determined as " << Utilities::FormatMemorySize(minimal_amount_of_memory_required) << "." << endl
+                            << "This program will exit now. (Check the synopsis for how this check can be disabled)" << endl;
+                        log->WriteLineStdOut(string_stream.str());
+                    });
+            return false;
+        }
     }
 
     // and now... more heuristic and black art
@@ -91,11 +130,14 @@ bool Configure::DoConfiguration(const DeskewDocumentInfo& deskew_document_info, 
     if (limit_for_memory_type_destination_brick <= memory_characteristics.max_size_of_output_brick_including_tiling ||
         high_water_mark_limit <= memory_characteristics.max_size_of_input_brick)
     {
-        ostringstream string_stream;
-        string_stream.imbue(this->app_context_.GetFormattingLocale());
-        string_stream << "Unable to process this document: No suitable memory configuration could be determined." << endl
-            << "This program will exit now. (Check the synopsis for how the memory-size assumed can be adjusted)" << endl;
-        this->app_context_.GetLog()->WriteLineStdOut(string_stream.str());
+        this->app_context_.DoIfVerbosityGreaterOrEqual(MessagesPrintVerbosity::kNormal, [this](auto log)->void
+            {
+                ostringstream string_stream;
+                string_stream.imbue(this->app_context_.GetFormattingLocale());
+                string_stream << "Unable to process this document: No suitable memory configuration could be determined." << endl
+                    << "This program will exit now. (Check the synopsis for how the memory-size assumed can be adjusted)" << endl;
+                log->WriteLineStdOut(string_stream.str());
+            });
         return false;
     }
 

@@ -18,3 +18,4 @@ version history                 {#version_history}
  0.6.1              | [18](https://github.com/ZEISS/warpaffine/pull/18) | fix a race-condition (that could result in a corrupted destination CZI-document)
  0.6.2              | [19](https://github.com/ZEISS/warpaffine/pull/19) | use a "replicate-1-pixel-border" for reference-warp calculation to avoid black-pixel-artifacts
  0.7.0              | [20](https://github.com/ZEISS/warpaffine/pull/20) | add --illumination-angle CLI parameter for configurable deskew angle
+ 0.8.0              | [21](https://github.com/ZEISS/warpaffine/pull/21) | add option --allow-memory-oversubscription (allowing for memory oversubscription)

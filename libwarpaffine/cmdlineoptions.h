@@ -43,6 +43,7 @@ private:
     bool use_acquisition_tiles_{ false };
     bool write_stage_positions_in_subblock_metadata_{ true };
     bool copy_attachments_from_source_to_destination_{ true };
+    bool allow_memory_oversubscription_{ false };
     std::string source_stream_class_;
     std::map<int, libCZI::StreamsFactory::Property> property_bag_for_stream_class;
     std::optional<double> illumination_angle_degrees_;
@@ -94,6 +95,7 @@ public:
     [[nodiscard]] bool GetUseAcquisitionTiles() const { return this->use_acquisition_tiles_; }
     [[nodiscard]] bool GetWriteStagePositionsInSubblockMetadata() const { return this->write_stage_positions_in_subblock_metadata_; }
     [[nodiscard]] bool GetCopyAttachmentsFromSourceToDestination() const { return this->copy_attachments_from_source_to_destination_; }
+    [[nodiscard]] bool GetAllowMemoryOversubscription() const { return this->allow_memory_oversubscription_; }
 
     /// Gets the illumination angle override from command line, if specified.
     /// \returns The illumination angle in degrees if specified, nullopt otherwise.
