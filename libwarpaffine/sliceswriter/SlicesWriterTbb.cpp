@@ -13,6 +13,7 @@
 #include <tuple>
 #include <utility>
 #include <sstream>
+#include <cmath>
 
 using namespace std;
 using namespace libCZI;
@@ -334,7 +335,9 @@ string CziSlicesWriterTbb::ConstructSubBlockMetadata(const SubBlockWriteInfo2& s
                 static_cast<unsigned int>(guid.Data2),
                 static_cast<unsigned int>(guid.Data3),
                 static_cast<unsigned int>(guid.Data4[0]), static_cast<unsigned int>(guid.Data4[1]),
-                static_cast<unsigned int>(guid.Data4[2]), static_cast<unsigned int>(guid.Data4[3]), static_cast<unsigned int>(guid.Data4[4]), static_cast<unsigned int>(guid.Data4[5]), static_cast<unsigned int>(guid.Data4[6]), static_cast<unsigned int>(guid.Data4[7]));
+                static_cast<unsigned int>(guid.Data4[2]), static_cast<unsigned int>(guid.Data4[3]), 
+                static_cast<unsigned int>(guid.Data4[4]), static_cast<unsigned int>(guid.Data4[5]), 
+                static_cast<unsigned int>(guid.Data4[6]), static_cast<unsigned int>(guid.Data4[7]));
 
             metadata += "<RetilingId>";
             metadata += guidText;
