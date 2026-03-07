@@ -136,19 +136,6 @@ else()
     set(RAPIDJSON_INCLUDE_DIRS ${rapidjson_SOURCE_DIR}/include)
 endif()
 
-# pull int tinyxml2 as a dependency
-FetchContent_Declare(
-  tinyxml2
-  GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
-  GIT_TAG        11.0.0 
-  GIT_SHALLOW    TRUE
-)
-# ensure tinyxml2 tests are not generated when pulled via FetchContent
-set(tinyxml2_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-
-FetchContent_MakeAvailable(tinyxml2)
-
-
 include("${CMAKE_SOURCE_DIR}/modules/CheckForLibAtomicRequired.cmake")
 CheckForAdditionalLibsRequiredForAtomic(ADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC)
 

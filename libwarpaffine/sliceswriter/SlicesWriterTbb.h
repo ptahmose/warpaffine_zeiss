@@ -13,8 +13,6 @@
 
 #include <tbb/concurrent_queue.h>
 
-#include <tinyxml2.h>
-
 /// Implementation of a ICziSlicesWriter that uses a MPSC-queue to serialize the slice-write operations.
 /// The actual CZI-writing is handled by libCZI.
 class CziSlicesWriterTbb : public ICziSlicesWriter
@@ -51,7 +49,6 @@ public:
 private:
     void WriteWorker();
     void CopyMetadata(libCZI::IXmlNodeRead* rootSource, libCZI::IXmlNodeRw* rootDestination);
-    void AddRetilingId(const SubBlockWriteInfo2& sub_block_write_info, tinyxml2::XMLElement& tagsNode) const;
     libCZI::GUID CreateRetilingIdWithZAndSlice(int z, std::uint32_t slice) const;
     std::string ConstructSubBlockMetadata(const SubBlockWriteInfo2& sub_block_write_info);
 };
