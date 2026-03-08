@@ -313,7 +313,7 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
         ->default_val(BrickReaderImplementation::kPlaneReader2)
         ->transform(CLI::CheckedTransformer(map_string_to_brick_source_implementation, CLI::ignore_case));
     app.add_option("-w,--warp_engine", warp_affine_engine_implementation,
-        "Which warp-affine transformation implementation to use. Possible values are 'IPP', 'reference' or 'null'.")
+        "Which warp-affine transformation implementation to use. Possible values are 'IPP', 'reference', 'fast' or 'null'.")
         ->option_text("WARP_ENGINE_IMPLEMENTATION")
         ->default_val(CCmdLineOptions::kDefaultWarpAffineEngineImplementation)
         ->transform(CLI::CheckedTransformer(map_string_to_warp_affine_transformation_implementation, CLI::ignore_case));
