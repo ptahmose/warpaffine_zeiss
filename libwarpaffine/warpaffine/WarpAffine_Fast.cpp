@@ -30,6 +30,22 @@
 ///   through Eigen's expression-template machinery. We replace this with three plain
 ///   `double` variables (src_x, src_y, src_z), eliminating all Eigen overhead from
 ///   the hot path. Eigen is only used once during setup to compute the matrix inverse.
+///   
+/// **Optimization 4 - scanline-based zone precomputation for classifying pixels as inside/outside:**  
+///   Instead of classifying every pixel in the inner x-loop via a switch, we now solve the linear 
+///   inequalities once per scanline to find the four x-positions where the classification transitions occur.
+///   Before (per-pixel classification):
+///     for each x:
+///         switch (classify(src_x, src_y, src_z))   ← branch on every pixel
+///             case kInside: ...
+///             case kOnePixelOutside: ...
+///             case kOutside: ...
+///   After (scanline-based zone precomputation):
+///     Zone 1 : [0, x_ext_start)           → memset zero
+///     Zone 2 : [x_ext_start, x_in_start)  → tight loop : SampleTrilinearBorder
+///     Zone 3 : [x_in_start, x_in_end)     → tight loop : SampleTrilinearInside  ← hot path, NO branching
+///     Zone 4 : [x_in_end, x_ext_end)      → tight loop : SampleTrilinearBorder
+///     Zone 5 : [x_ext_end, dst_w)         → memset zero
 ///
 /// Together these changes reduce the per-voxel cost from roughly 28 FLOPs + 2 virtual-
 /// dispatch-like calls + Eigen temporaries, down to 3 additions + direct memory access.
@@ -98,22 +114,120 @@ namespace
 
     // ---- Nearest-neighbor warp ------------------------------------------------
 
+    /// Compute the x-position boundaries that divide a destination scanline into three
+    /// contiguous zones for nearest-neighbor interpolation.
+    ///
+    /// For NN, a destination voxel maps to a valid source voxel when
+    ///     lround(src_i) ∈ [0, dim_i)   for all three axes.
+    ///
+    /// Since lround rounds half-integers away from zero, this corresponds to the
+    /// continuous condition  src_i ∈ (-0.5, dim_i - 0.5)  (open on both sides because
+    /// lround(-0.5) = -1 and lround(dim-0.5) = dim, both out of range).
+    ///
+    /// Because only two states exist (inside / outside), the scanline splits into just
+    /// three zones:
+    ///
+    ///     [0, x_in_start)              — outside  (zero-fill)
+    ///     [x_in_start, x_in_end)       — inside   (copy from source, no bounds check)
+    ///     [x_in_end, dst_w)            — outside  (zero-fill)
+    ///
+    /// The implementation mirrors ComputeScanlineSegments: solve the linear inequalities
+    /// for the continuous x-interval, convert to integer bounds, then verify ±1 boundary
+    /// pixels using the actual lround + bounds check.
+    ///
+    /// Post-condition: 0 <= x_in_start <= x_in_end <= dst_w
+    inline void ComputeNNScanlineSegments(
+        double base_x, double base_y, double base_z,
+        double dx_x, double dx_y, double dx_z,
+        int src_w, int src_h, int src_d,
+        uint32_t dst_w,
+        uint32_t& x_in_start, uint32_t& x_in_end)
+    {
+        const double dw = static_cast<double>(dst_w);
+
+        // The continuous condition for lround(f(x)) ∈ [0, dim) is f(x) ∈ (-0.5, dim-0.5).
+        // We approximate this with the half-open interval [-0.5, dim-0.5) for the solver,
+        // then the verification step handles the open-lower-bound edge case (lround(-0.5) = -1).
+        auto narrow_half_open = [](double base, double dx, double lower, double upper,
+                                   double& lo, double& hi)
+        {
+            if (lo >= hi) return;
+            if (dx > 0.0)
+            {
+                lo = max(lo, (lower - base) / dx);
+                hi = min(hi, (upper - base) / dx);
+            }
+            else if (dx < 0.0)
+            {
+                lo = max(lo, (upper - base) / dx);
+                hi = min(hi, (lower - base) / dx);
+            }
+            else
+            {
+                if (base < lower || base >= upper) { lo = hi + 1; }
+            }
+        };
+
+        auto clamp_to_uint32 = [](double v, uint32_t max_val) -> uint32_t
+        {
+            if (v <= 0.0) return 0;
+            if (v >= static_cast<double>(max_val)) return max_val;
+            return static_cast<uint32_t>(v);
+        };
+
+        // Solve for x where src_i ∈ [-0.5, dim_i - 0.5) for all axes.
+        double in_lo = 0.0, in_hi = dw;
+        narrow_half_open(base_x, dx_x, -0.5, static_cast<double>(src_w) - 0.5, in_lo, in_hi);
+        narrow_half_open(base_y, dx_y, -0.5, static_cast<double>(src_h) - 0.5, in_lo, in_hi);
+        narrow_half_open(base_z, dx_z, -0.5, static_cast<double>(src_d) - 0.5, in_lo, in_hi);
+
+        if (in_lo >= in_hi)
+        {
+            x_in_start = x_in_end = 0;
+        }
+        else
+        {
+            x_in_start = clamp_to_uint32(ceil(in_lo), dst_w);
+            x_in_end = clamp_to_uint32(ceil(in_hi), dst_w);
+            if (x_in_start >= x_in_end) x_in_start = x_in_end = 0;
+        }
+
+        // Verify and adjust boundaries using the actual lround + bounds check.
+        auto is_nn_inside = [&](uint32_t x) -> bool
+        {
+            int nn_x = static_cast<int>(lround(base_x + dx_x * x));
+            int nn_y = static_cast<int>(lround(base_y + dx_y * x));
+            int nn_z = static_cast<int>(lround(base_z + dx_z * x));
+            return nn_x >= 0 && nn_x < src_w &&
+                   nn_y >= 0 && nn_y < src_h &&
+                   nn_z >= 0 && nn_z < src_d;
+        };
+
+        if (x_in_start > 0 && is_nn_inside(x_in_start - 1))
+            --x_in_start;
+        while (x_in_start < x_in_end && !is_nn_inside(x_in_start))
+            ++x_in_start;
+
+        if (x_in_end < dst_w && is_nn_inside(x_in_end))
+            ++x_in_end;
+        while (x_in_end > x_in_start && !is_nn_inside(x_in_end - 1))
+            --x_in_end;
+    }
+
     /// Fast nearest-neighbor warp for a single pixel type.
     ///
-    /// For every voxel (x, y, z) in the destination brick, we determine the corresponding
-    /// source position via the inverse affine transformation, round to the nearest integer
-    /// neighbor (using lround, matching the reference), and copy the source voxel value.
-    /// If the rounded position falls outside the source brick, the destination voxel is
-    /// set to zero.
+    /// For each scanline (y, z), ComputeNNScanlineSegments solves the linear inequalities
+    /// to determine the x-range where lround(src) maps into the source brick.  The scanline
+    /// is then split into three zones:
     ///
-    /// The three-level loop applies the incremental decomposition:
-    ///   - z-loop: precompute z_contrib = col2*z + col3  (the part that depends only on z)
-    ///   - y-loop: precompute src_{x,y,z} = col1*y + z_contrib  (the x=0 start for this scanline)
-    ///             Also compute the destination pointer for this scanline via direct stride arithmetic,
-    ///             avoiding per-voxel GetPointerToPixel calls.
-    ///   - x-loop: use the current source position, round to NN, bounds-check, copy or zero-fill,
-    ///             then advance source position by col0 (a single 3-component add) and destination
-    ///             pointer by sizeof(t).
+    ///     [0, x_in_start)        — outside:  zero-fill via memset
+    ///     [x_in_start, x_in_end) — inside:   lround + copy (no bounds check)
+    ///     [x_in_end, dst_w)      — outside:  zero-fill via memset
+    ///
+    /// The inside zone eliminates the per-pixel bounds-check branch that was present in the
+    /// original implementation, allowing better instruction pipelining and branch prediction.
+    /// Source positions are recomputed from the direct formula at the zone boundary and then
+    /// accumulated incrementally within the zone.
     ///
     /// \tparam t  The pixel value type (uint8_t, uint16_t, or float).
     template <typename t>
@@ -126,88 +240,75 @@ namespace
         const uint32_t dst_h = destination_brick.info.height;
         const uint32_t dst_d = destination_brick.info.depth;
 
-        // Source dimensions as signed int for the bounds check (nn_x >= 0 && nn_x < src_w).
         const int src_w = static_cast<int>(source_brick.info.width);
         const int src_h = static_cast<int>(source_brick.info.height);
         const int src_d = static_cast<int>(source_brick.info.depth);
 
-        // Cache strides for direct pointer arithmetic.  The stride values describe the
-        // byte distance between consecutive lines / planes in memory and may include
-        // padding beyond width * sizeof(pixel).
         const uint32_t dst_stride_line = destination_brick.info.stride_line;
         const uint32_t dst_stride_plane = destination_brick.info.stride_plane;
         const uint32_t src_stride_line = source_brick.info.stride_line;
         const uint32_t src_stride_plane = source_brick.info.stride_plane;
 
-        // Raw base pointers — all subsequent pixel access is computed relative to these
-        // using the precomputed strides, with no further per-voxel function calls.
         char* dst_base = static_cast<char*>(destination_brick.data.get());
         const char* src_base = static_cast<const char*>(source_brick.data.get());
 
         for (uint32_t z = 0; z < dst_d; ++z)
         {
-            // z-dependent contribution:  z_contrib = col2 * z + col3
-            // This is constant for the entire z-slice and factored out of the y-loop.
             const double z_contrib_x = tf.dz_src_x * z + tf.base_src_x;
             const double z_contrib_y = tf.dz_src_y * z + tf.base_src_y;
             const double z_contrib_z = tf.dz_src_z * z + tf.base_src_z;
 
             for (uint32_t y = 0; y < dst_h; ++y)
             {
-                // Source position at the start of this scanline (x=0):
-                //   src = col1 * y + z_contrib
-                // This will be incrementally updated by adding col0 per x-step below.
-                double src_x = tf.dy_src_x * y + z_contrib_x;
-                double src_y = tf.dy_src_y * y + z_contrib_y;
-                double src_z = tf.dy_src_z * y + z_contrib_z;
+                const double scanline_base_x = tf.dy_src_x * y + z_contrib_x;
+                const double scanline_base_y = tf.dy_src_y * y + z_contrib_y;
+                const double scanline_base_z = tf.dy_src_z * y + z_contrib_z;
 
-                // Destination pointer for this scanline, computed once via stride arithmetic.
-                // We advance it with ++dst_ptr (sizeof(t)) in the inner loop.
                 t* dst_ptr = reinterpret_cast<t*>(
                     dst_base +
                     static_cast<size_t>(z) * dst_stride_plane +
                     static_cast<size_t>(y) * dst_stride_line);
 
-                for (uint32_t x = 0; x < dst_w; ++x)
-                {
-                    // Round the continuous source position to the nearest integer voxel.
-                    // This matches the reference's ToNearestNeighbor() which uses lround.
-                    const int nn_x = static_cast<int>(lround(src_x));
-                    const int nn_y = static_cast<int>(lround(src_y));
-                    const int nn_z = static_cast<int>(lround(src_z));
+                // Determine the inside zone for this scanline.
+                uint32_t x_in_start, x_in_end;
+                ComputeNNScanlineSegments(
+                    scanline_base_x, scanline_base_y, scanline_base_z,
+                    tf.dx_src_x, tf.dx_src_y, tf.dx_src_z,
+                    src_w, src_h, src_d, dst_w,
+                    x_in_start, x_in_end);
 
-                    // Bounds check: is the nearest-neighbor inside [0, dimension) ?
-                    // Equivalent to the reference's IsInsideBrick() which checks
-                    // position <= -1 || position >= width — for integer positions,
-                    // that is the same as position < 0 || position >= width.
-                    if (nn_x >= 0 && nn_x < src_w &&
-                        nn_y >= 0 && nn_y < src_h &&
-                        nn_z >= 0 && nn_z < src_d)
+                // Zone 1: [0, x_in_start) — outside, zero-fill.
+                if (x_in_start > 0)
+                    memset(dst_ptr, 0, static_cast<size_t>(x_in_start) * sizeof(t));
+
+                // Zone 2: [x_in_start, x_in_end) — inside, branch-free copy.
+                if (x_in_end > x_in_start)
+                {
+                    double src_x = scanline_base_x + tf.dx_src_x * x_in_start;
+                    double src_y = scanline_base_y + tf.dx_src_y * x_in_start;
+                    double src_z = scanline_base_z + tf.dx_src_z * x_in_start;
+                    for (uint32_t x = x_in_start; x < x_in_end; ++x)
                     {
-                        // Fetch the source voxel via direct pointer arithmetic:
-                        //   address = base + z*stride_plane + y*stride_line + x*sizeof(pixel)
+                        const int nn_x = static_cast<int>(lround(src_x));
+                        const int nn_y = static_cast<int>(lround(src_y));
+                        const int nn_z = static_cast<int>(lround(src_z));
+
                         const t* src_pixel = reinterpret_cast<const t*>(
                             src_base +
                             static_cast<size_t>(nn_z) * src_stride_plane +
                             static_cast<size_t>(nn_y) * src_stride_line +
                             static_cast<size_t>(nn_x) * sizeof(t));
-                        *dst_ptr = *src_pixel;
-                    }
-                    else
-                    {
-                        *dst_ptr = 0;
-                    }
+                        dst_ptr[x] = *src_pixel;
 
-                    // Advance destination pointer by one pixel (sizeof(t) bytes).
-                    ++dst_ptr;
-
-                    // Advance source position by col0 of the inverse matrix — the constant
-                    // delta corresponding to stepping +1 in destination x. This replaces
-                    // the full matrix-vector multiply that the reference does per voxel.
-                    src_x += tf.dx_src_x;
-                    src_y += tf.dx_src_y;
-                    src_z += tf.dx_src_z;
+                        src_x += tf.dx_src_x;
+                        src_y += tf.dx_src_y;
+                        src_z += tf.dx_src_z;
+                    }
                 }
+
+                // Zone 3: [x_in_end, dst_w) — outside, zero-fill.
+                if (x_in_end < dst_w)
+                    memset(dst_ptr + x_in_end, 0, static_cast<size_t>(dst_w - x_in_end) * sizeof(t));
             }
         }
     }
