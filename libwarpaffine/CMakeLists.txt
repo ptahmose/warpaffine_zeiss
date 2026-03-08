@@ -74,7 +74,10 @@ set(LIBWARPAFFINE_SRCFILES
 "warpaffine/reference_warp.h" 
 "warpaffine/reference_warp.cpp" 
 "warpaffine/WarpAffine_Reference.h" 
-"warpaffine/WarpAffine_Reference.cpp")
+"warpaffine/WarpAffine_Reference.cpp"
+"warpaffine/WarpAffine_Fast.h"
+"warpaffine/WarpAffine_Fast.cpp"
+)
 
 add_library(libwarpaffine ${LIBWARPAFFINE_SRCFILES})
 

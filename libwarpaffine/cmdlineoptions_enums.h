@@ -24,7 +24,8 @@ enum class WarpAffineImplementation
 {
     kNull,       ///< The "null" implementation, i.e. no warp affine is performed, the output is just zero-filled.
     kIPP,        ///< The WarpAffine implementation using Intel kIPP.
-    kReference   ///< The reference implementation, i.e. a non-optimized home-brew implementation.
+    kReference,  ///< The reference implementation, i.e. a non-optimized home-brew implementation.
+    kFast,       ///< A faster version of the reference implementation.
 };
 
 enum class TestStopPipelineAfter

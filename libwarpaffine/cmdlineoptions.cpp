@@ -225,6 +225,7 @@ CCmdLineOptions::ParseResult CCmdLineOptions::Parse(int argc, char** argv)
 #endif
         { "null", WarpAffineImplementation::kNull },
         { "reference", WarpAffineImplementation::kReference },
+        { "fast", WarpAffineImplementation::kFast },
     };
 
     // specify the string-to-enum-mapping for "test-stop-pipeline-after-operation"
