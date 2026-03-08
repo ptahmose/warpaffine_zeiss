@@ -61,6 +61,7 @@
 ///   lround() result for either nearest-neighbor or trilinear interpolation.
 
 #include "WarpAffine_Fast.h"
+#include <algorithm>
 #include <cmath>
 #include <algorithm>
 #include <cstring>
@@ -91,10 +92,18 @@ namespace
     /// the homogeneous w-component is always 1 and not needed.
     struct IncrementalTransform
     {
-        double dx_src_x, dx_src_y, dx_src_z;       ///< Column 0 of inverse (rows 0-2): source-position delta when stepping +1 in destination x.
-        double dy_src_x, dy_src_y, dy_src_z;       ///< Column 1 of inverse (rows 0-2): source-position delta when stepping +1 in destination y.
-        double dz_src_x, dz_src_y, dz_src_z;       ///< Column 2 of inverse (rows 0-2): source-position delta when stepping +1 in destination z.
-        double base_src_x, base_src_y, base_src_z; ///< Column 3 of inverse (rows 0-2): source position corresponding to destination (0,0,0).
+        double dx_src_x;   ///< Column 0 of inverse (row 0): source-position x delta when stepping +1 in destination x.
+        double dx_src_y;   ///< Column 0 of inverse (row 1): source-position y delta when stepping +1 in destination x.
+        double dx_src_z;   ///< Column 0 of inverse (row 2): source-position z delta when stepping +1 in destination x.
+        double dy_src_x;   ///< Column 1 of inverse (row 0): source-position x delta when stepping +1 in destination y.
+        double dy_src_y;   ///< Column 1 of inverse (row 1): source-position y delta when stepping +1 in destination y.
+        double dy_src_z;   ///< Column 1 of inverse (row 2): source-position z delta when stepping +1 in destination y.
+        double dz_src_x;   ///< Column 2 of inverse (row 0): source-position x delta when stepping +1 in destination z.
+        double dz_src_y;   ///< Column 2 of inverse (row 1): source-position y delta when stepping +1 in destination z.
+        double dz_src_z;   ///< Column 2 of inverse (row 2): source-position z delta when stepping +1 in destination z.
+        double base_src_x; ///< Column 3 of inverse (row 0): source position x for destination (0,0,0).
+        double base_src_y; ///< Column 3 of inverse (row 1): source position y for destination (0,0,0).
+        double base_src_z; ///< Column 3 of inverse (row 2): source position z for destination (0,0,0).
     };
 
     /// Compute the inverse of the combined (translation * transformation) matrix and
@@ -150,33 +159,46 @@ namespace
         // then the verification step handles the open-lower-bound edge case (lround(-0.5) = -1).
         auto narrow_half_open = [](double base, double dx, double lower, double upper,
                                    double& lo, double& hi)
-        {
-            if (lo >= hi) return;
-            if (dx > 0.0)
             {
-                lo = max(lo, (lower - base) / dx);
-                hi = min(hi, (upper - base) / dx);
-            }
-            else if (dx < 0.0)
-            {
-                lo = max(lo, (upper - base) / dx);
-                hi = min(hi, (lower - base) / dx);
-            }
-            else
-            {
-                if (base < lower || base >= upper) { lo = hi + 1; }
-            }
-        };
+                if (lo >= hi)
+                {
+                    return;
+                }
+
+                if (dx > 0.0)
+                {
+                    lo = max(lo, (lower - base) / dx);
+                    hi = min(hi, (upper - base) / dx);
+                }
+                else if (dx < 0.0)
+                {
+                    lo = max(lo, (upper - base) / dx);
+                    hi = min(hi, (lower - base) / dx);
+                }
+                else
+                {
+                    if (base < lower || base >= upper) { lo = hi + 1; }
+                }
+            };
 
         auto clamp_to_uint32 = [](double v, uint32_t max_val) -> uint32_t
-        {
-            if (v <= 0.0) return 0;
-            if (v >= static_cast<double>(max_val)) return max_val;
-            return static_cast<uint32_t>(v);
-        };
+            {
+                if (v <= 0.0)
+                {
+                    return 0;
+                }
+
+                if (v >= static_cast<double>(max_val))
+                {
+                    return max_val;
+                }
+
+                return static_cast<uint32_t>(v);
+            };
 
         // Solve for x where src_i ∈ [-0.5, dim_i - 0.5) for all axes.
-        double in_lo = 0.0, in_hi = dw;
+        double in_lo = 0.0;
+        double in_hi = dw;
         narrow_half_open(base_x, dx_x, -0.5, static_cast<double>(src_w) - 0.5, in_lo, in_hi);
         narrow_half_open(base_y, dx_y, -0.5, static_cast<double>(src_h) - 0.5, in_lo, in_hi);
         narrow_half_open(base_z, dx_z, -0.5, static_cast<double>(src_d) - 0.5, in_lo, in_hi);
@@ -189,29 +211,42 @@ namespace
         {
             x_in_start = clamp_to_uint32(ceil(in_lo), dst_w);
             x_in_end = clamp_to_uint32(ceil(in_hi), dst_w);
-            if (x_in_start >= x_in_end) x_in_start = x_in_end = 0;
+            if (x_in_start >= x_in_end)
+            {
+                x_in_start = x_in_end = 0;
+            }
         }
 
         // Verify and adjust boundaries using the actual lround + bounds check.
         auto is_nn_inside = [&](uint32_t x) -> bool
-        {
-            int nn_x = static_cast<int>(lround(base_x + dx_x * x));
-            int nn_y = static_cast<int>(lround(base_y + dx_y * x));
-            int nn_z = static_cast<int>(lround(base_z + dx_z * x));
-            return nn_x >= 0 && nn_x < src_w &&
-                   nn_y >= 0 && nn_y < src_h &&
-                   nn_z >= 0 && nn_z < src_d;
-        };
+            {
+                int nn_x = static_cast<int>(lround(base_x + dx_x * x));
+                int nn_y = static_cast<int>(lround(base_y + dx_y * x));
+                int nn_z = static_cast<int>(lround(base_z + dx_z * x));
+                return nn_x >= 0 && nn_x < src_w &&
+                    nn_y >= 0 && nn_y < src_h &&
+                    nn_z >= 0 && nn_z < src_d;
+            };
 
         if (x_in_start > 0 && is_nn_inside(x_in_start - 1))
+        {
             --x_in_start;
+        }
+
         while (x_in_start < x_in_end && !is_nn_inside(x_in_start))
+        {
             ++x_in_start;
+        }
 
         if (x_in_end < dst_w && is_nn_inside(x_in_end))
+        {
             ++x_in_end;
+        }
+
         while (x_in_end > x_in_start && !is_nn_inside(x_in_end - 1))
+        {
             --x_in_end;
+        }
     }
 
     /// Fast nearest-neighbor warp for a single pixel type.
@@ -279,7 +314,9 @@ namespace
 
                 // Zone 1: [0, x_in_start) — outside, zero-fill.
                 if (x_in_start > 0)
+                {
                     memset(dst_ptr, 0, static_cast<size_t>(x_in_start) * sizeof(t));
+                }
 
                 // Zone 2: [x_in_start, x_in_end) — inside, branch-free copy.
                 if (x_in_end > x_in_start)
@@ -308,7 +345,9 @@ namespace
 
                 // Zone 3: [x_in_end, dst_w) — outside, zero-fill.
                 if (x_in_end < dst_w)
+                {
                     memset(dst_ptr + x_in_end, 0, static_cast<size_t>(dst_w - x_in_end) * sizeof(t));
+                }
             }
         }
     }
@@ -329,9 +368,15 @@ namespace
     inline t ClampAndRound(double c)
     {
         if (c < 0)
+        {
             return static_cast<t>(0);
+        }
+
         if (c > static_cast<double>(numeric_limits<t>::max()))
+        {
             return numeric_limits<t>::max();
+        }
+
         return static_cast<t>(lround(c));
     }
 
@@ -470,13 +515,13 @@ namespace
         // Unlike the "inside" variant we cannot use a single base pointer + offsets
         // because the clamped coordinates may alias (e.g. x0 == x1 when clamped).
         auto sample = [&](int sx, int sy, int sz) -> t
-        {
-            return *reinterpret_cast<const t*>(
-                src_base +
-                static_cast<size_t>(sz) * src_stride_plane +
-                static_cast<size_t>(sy) * src_stride_line +
-                static_cast<size_t>(sx) * sizeof(t));
-        };
+            {
+                return *reinterpret_cast<const t*>(
+                    src_base +
+                    static_cast<size_t>(sz) * src_stride_plane +
+                    static_cast<size_t>(sy) * src_stride_line +
+                    static_cast<size_t>(sx) * sizeof(t));
+            };
 
         const t c000 = sample(x0, y0, z0);
         const t c100 = sample(x1, y0, z0);
@@ -552,53 +597,75 @@ namespace
         //   - If dx == 0: f is constant, the constraint is either always or never satisfied
         auto narrow_half_open = [](double base, double dx, double lower, double upper,
                                    double& lo, double& hi)
-        {
-            if (lo >= hi) return;
-            if (dx > 0.0)
             {
-                lo = max(lo, (lower - base) / dx);
-                hi = min(hi, (upper - base) / dx);
-            }
-            else if (dx < 0.0)
-            {
-                lo = max(lo, (upper - base) / dx);
-                hi = min(hi, (lower - base) / dx);
-            }
-            else
-            {
-                if (base < lower || base >= upper) { lo = hi + 1; }
-            }
-        };
+                if (lo >= hi)
+                {
+                    return;
+                }
+
+                if (dx > 0.0)
+                {
+                    lo = max(lo, (lower - base) / dx);
+                    hi = min(hi, (upper - base) / dx);
+                }
+                else if (dx < 0.0)
+                {
+                    lo = max(lo, (upper - base) / dx);
+                    hi = min(hi, (lower - base) / dx);
+                }
+                else
+                {
+                    if (base < lower || base >= upper)
+                    {
+                        lo = hi + 1;
+                    }
+                }
+            };
 
         // For a closed range [lower, upper]:
         //   Intersect [lo, hi] with {x : lower <= f(x) <= upper}.
         auto narrow_closed = [](double base, double dx, double lower, double upper,
                                 double& lo, double& hi)
-        {
-            if (lo > hi) return;
-            if (dx > 0.0)
             {
-                lo = max(lo, (lower - base) / dx);
-                hi = min(hi, (upper - base) / dx);
-            }
-            else if (dx < 0.0)
-            {
-                lo = max(lo, (upper - base) / dx);
-                hi = min(hi, (lower - base) / dx);
-            }
-            else
-            {
-                if (base < lower || base > upper) { lo = hi + 1; }
-            }
-        };
+                if (lo > hi)
+                {
+                    return;
+                }
+
+                if (dx > 0.0)
+                {
+                    lo = max(lo, (lower - base) / dx);
+                    hi = min(hi, (upper - base) / dx);
+                }
+                else if (dx < 0.0)
+                {
+                    lo = max(lo, (upper - base) / dx);
+                    hi = min(hi, (lower - base) / dx);
+                }
+                else
+                {
+                    if (base < lower || base > upper)
+                    {
+                        lo = hi + 1;
+                    }
+                }
+            };
 
         // Helper: clamp a double to [0, max_val] and convert to uint32_t.
         auto clamp_to_uint32 = [](double v, uint32_t max_val) -> uint32_t
-        {
-            if (v <= 0.0) return 0;
-            if (v >= static_cast<double>(max_val)) return max_val;
-            return static_cast<uint32_t>(v);
-        };
+            {
+                if (v <= 0.0)
+                {
+                    return 0;
+                }
+
+                if (v >= static_cast<double>(max_val))
+                {
+                    return max_val;
+                }
+
+                return static_cast<uint32_t>(v);
+            };
 
         // --- Compute continuous x-interval for "inside" region ---
         //     Inside: src_i in [0, dim_i - 1) for all three axes.
@@ -609,7 +676,8 @@ namespace
 
         // --- Compute continuous x-interval for "extended" region ---
         //     Extended: src_i in [-1, dim_i] for all three axes.
-        double ext_lo = 0.0, ext_hi = dw;
+        double ext_lo = 0.0;
+        double ext_hi = dw;
         narrow_closed(base_x, dx_x, -1.0, static_cast<double>(src_w), ext_lo, ext_hi);
         narrow_closed(base_y, dx_y, -1.0, static_cast<double>(src_h), ext_lo, ext_hi);
         narrow_closed(base_z, dx_z, -1.0, static_cast<double>(src_d), ext_lo, ext_hi);
@@ -633,7 +701,10 @@ namespace
         {
             x_in_start = clamp_to_uint32(ceil(in_lo), dst_w);
             x_in_end = clamp_to_uint32(ceil(in_hi), dst_w);
-            if (x_in_start >= x_in_end) x_in_start = x_in_end = 0;
+            if (x_in_start >= x_in_end)
+            {
+                x_in_start = x_in_end = 0;
+            }
         }
 
         if (ext_lo > ext_hi)
@@ -661,52 +732,72 @@ namespace
         // agreement with the per-pixel classification that the reference uses.
 
         auto is_inside = [&](uint32_t x) -> bool
-        {
-            double sx = base_x + dx_x * x;
-            double sy = base_y + dx_y * x;
-            double sz = base_z + dx_z * x;
-            return sx >= 0 && sx < (src_w - 1) &&
-                   sy >= 0 && sy < (src_h - 1) &&
-                   sz >= 0 && sz < (src_d - 1);
-        };
+            {
+                const double sx = base_x + dx_x * x;
+                const double sy = base_y + dx_y * x;
+                const double sz = base_z + dx_z * x;
+                return sx >= 0 && sx < (src_w - 1) &&
+                    sy >= 0 && sy < (src_h - 1) &&
+                    sz >= 0 && sz < (src_d - 1);
+            };
 
         auto is_extended = [&](uint32_t x) -> bool
-        {
-            double sx = base_x + dx_x * x;
-            double sy = base_y + dx_y * x;
-            double sz = base_z + dx_z * x;
-            return sx >= -1 && sx <= src_w &&
-                   sy >= -1 && sy <= src_h &&
-                   sz >= -1 && sz <= src_d;
-        };
+            {
+                const double sx = base_x + dx_x * x;
+                const double sy = base_y + dx_y * x;
+                const double sz = base_z + dx_z * x;
+                return sx >= -1 && sx <= src_w &&
+                    sy >= -1 && sy <= src_h &&
+                    sz >= -1 && sz <= src_d;
+            };
 
         // Expand/contract extended boundaries (at most ±1 per side).
         if (x_ext_start > 0 && is_extended(x_ext_start - 1))
+        {
             --x_ext_start;
+        }
+
         while (x_ext_start < x_ext_end && !is_extended(x_ext_start))
+        {
             ++x_ext_start;
+        }
 
         if (x_ext_end < dst_w && is_extended(x_ext_end))
+        {
             ++x_ext_end;
+        }
+
         while (x_ext_end > x_ext_start && !is_extended(x_ext_end - 1))
+        {
             --x_ext_end;
+        }
 
         // Expand/contract inside boundaries (at most ±1 per side).
         if (x_in_start > x_ext_start && is_inside(x_in_start - 1))
+        {
             --x_in_start;
+        }
+
         while (x_in_start < x_in_end && !is_inside(x_in_start))
+        {
             ++x_in_start;
+        }
 
         if (x_in_end < x_ext_end && is_inside(x_in_end))
+        {
             ++x_in_end;
+        }
+
         while (x_in_end > x_in_start && !is_inside(x_in_end - 1))
+        {
             --x_in_end;
+        }
 
         // Enforce the ordering invariant:
         //   0 <= x_ext_start <= x_in_start <= x_in_end <= x_ext_end <= dst_w
         x_in_start = max(x_in_start, x_ext_start);
         x_in_end = min(x_in_end, x_ext_end);
-        if (x_in_start > x_in_end) x_in_end = x_in_start;
+        x_in_end = max(x_in_start, x_in_end);
     }
 
     /// Fast trilinear warp for a single pixel type.
@@ -791,7 +882,9 @@ namespace
                 // All supported pixel types (uint8_t, uint16_t, float) represent zero
                 // as all-zero bytes, so memset is safe and fast.
                 if (x_ext_start > 0)
+                {
                     memset(dst_ptr, 0, static_cast<size_t>(x_ext_start) * sizeof(t));
+                }
 
                 // Zone 2: [x_ext_start, x_in_start) — border (clamped trilinear sampling).
                 if (x_in_start > x_ext_start)
@@ -847,7 +940,9 @@ namespace
 
                 // Zone 5: [x_ext_end, dst_w) — outside, zero-fill.
                 if (x_ext_end < dst_w)
+                {
                     memset(dst_ptr + x_ext_end, 0, static_cast<size_t>(dst_w - x_ext_end) * sizeof(t));
+                }
             }
         }
     }
@@ -947,6 +1042,7 @@ void WarpAffine_Fast::Execute(
         0, 1, 0, -destination_brick_position.y_position,
         0, 0, 1, -destination_brick_position.z_position,
         0, 0, 0, 1;
+
     const auto combined = translation * transformation;
     const IncrementalTransform tf = PrepareIncrementalTransform(combined);
 
