@@ -14,6 +14,7 @@
 #include <utility>
 #include <sstream>
 #include <cmath>
+#include <locale>
 
 using namespace std;
 using namespace libCZI;
