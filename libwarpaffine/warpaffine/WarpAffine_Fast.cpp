@@ -47,6 +47,7 @@
 #include "WarpAffine_Fast.h"
 #include <cmath>
 #include <algorithm>
+#include <cstring>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -212,51 +213,6 @@ namespace
     }
 
     // ---- Trilinear warp -------------------------------------------------------
-
-    /// Classification of a source sampling position relative to the source brick.
-    /// Trilinear interpolation requires the 2x2x2 neighborhood around the sample point.
-    /// Depending on where the point lies, the neighborhood may be fully inside the brick,
-    /// partially outside (requiring clamped sampling), or entirely outside.
-    enum class FastPixelPosition
-    {
-        kInside,           ///< The sample point and all 8 trilinear neighbors are within the brick.
-        kOnePixelOutside,  ///< The point is at most 1 pixel outside — trilinear interpolation is
-                           ///  still possible by clamping out-of-bounds coordinates to the boundary.
-        kOutside,          ///< The point is too far outside for meaningful interpolation → zero.
-    };
-
-    /// Classify a source sampling position for trilinear interpolation.
-    ///
-    /// For trilinear interpolation we need to access the 2x2x2 cube at floor(pos) .. floor(pos)+1.
-    /// - **kInside**: pos is in [0, dim-1) for all three axes, so floor(pos)+1 < dim and all
-    ///   8 neighbor reads are guaranteed in-bounds.
-    /// - **kOnePixelOutside**: pos is in [-1, dim] — the point is near the boundary but close
-    ///   enough that we can still interpolate by clamping neighbor coordinates to [0, dim-1].
-    ///   This reproduces the reference's "one pixel outside" behavior.
-    /// - **kOutside**: too far from the brick to produce a useful value.
-    ///
-    /// This is the exact same classification as ReferenceWarp::GetPixelPositionForTriLinear,
-    /// just using pre-cast int dimensions to avoid repeated unsigned/signed conversions.
-    inline FastPixelPosition GetPixelPositionForTriLinear(
-        int src_w, int src_h, int src_d,
-        double pos_x, double pos_y, double pos_z)
-    {
-        if (pos_x < 0 || pos_x >= src_w - 1 ||
-            pos_y < 0 || pos_y >= src_h - 1 ||
-            pos_z < 0 || pos_z >= src_d - 1)
-        {
-            if (pos_x >= -1 && pos_x <= src_w &&
-                pos_y >= -1 && pos_y <= src_h &&
-                pos_z >= -1 && pos_z <= src_d)
-            {
-                return FastPixelPosition::kOnePixelOutside;
-            }
-
-            return FastPixelPosition::kOutside;
-        }
-
-        return FastPixelPosition::kInside;
-    }
 
     /// Clamp an interpolated double value to the valid range of pixel type t, then round
     /// to the nearest representable value.
@@ -444,22 +400,240 @@ namespace
         return ClampAndRound<t>(c);
     }
 
+    // ---- Scanline segment computation -----------------------------------------
+
+    /// Compute the x-position boundaries that divide a destination scanline into five
+    /// contiguous zones for trilinear interpolation.
+    ///
+    /// For a given scanline (fixed y, z), the source position is a linear function of x:
+    ///
+    ///     src(x) = scanline_base + col0 * x
+    ///
+    /// Because a linear function crosses each boundary at most once, the classification
+    /// of pixels along the scanline follows a fixed order:
+    ///
+    ///     [0, x_ext_start)              — kOutside          (zero-fill)
+    ///     [x_ext_start, x_in_start)     — kOnePixelOutside  (border sampling with clamped reads)
+    ///     [x_in_start, x_in_end)        — kInside           (fast interior sampling, no clamping)
+    ///     [x_in_end, x_ext_end)         — kOnePixelOutside  (border sampling with clamped reads)
+    ///     [x_ext_end, dst_w)            — kOutside          (zero-fill)
+    ///
+    /// The "inside" zone is where all three source coordinates satisfy
+    ///     0 <= src_i < dim_i - 1
+    /// (so the full 2x2x2 trilinear neighborhood is in-bounds).
+    ///
+    /// The "extended" zone additionally includes positions where
+    ///     -1 <= src_i <= dim_i
+    /// (where clamped trilinear interpolation is still meaningful).
+    ///
+    /// This function solves the linear inequalities to find the four boundary x-positions.
+    /// Because floating-point rounding can shift the result by ±1 pixel, the computed
+    /// boundaries are verified and adjusted against the direct formula (base + dx * x) to
+    /// guarantee exact agreement with the per-pixel classification.
+    ///
+    /// Post-condition: 0 <= x_ext_start <= x_in_start <= x_in_end <= x_ext_end <= dst_w
+    inline void ComputeScanlineSegments(
+        double base_x, double base_y, double base_z,
+        double dx_x, double dx_y, double dx_z,
+        int src_w, int src_h, int src_d,
+        uint32_t dst_w,
+        uint32_t& x_ext_start, uint32_t& x_ext_end,
+        uint32_t& x_in_start, uint32_t& x_in_end)
+    {
+        const double dw = static_cast<double>(dst_w);
+
+        // --- Helper: narrow a continuous interval by intersecting with a linear constraint ---
+        //
+        // For a half-open range [lower, upper):
+        //   Given f(x) = base + dx*x, intersect [lo, hi) with {x : lower <= f(x) < upper}.
+        //   - If dx > 0: f is increasing, so x >= (lower-base)/dx  and  x < (upper-base)/dx
+        //   - If dx < 0: f is decreasing, inequalities flip
+        //   - If dx == 0: f is constant, the constraint is either always or never satisfied
+        auto narrow_half_open = [](double base, double dx, double lower, double upper,
+                                   double& lo, double& hi)
+        {
+            if (lo >= hi) return;
+            if (dx > 0.0)
+            {
+                lo = max(lo, (lower - base) / dx);
+                hi = min(hi, (upper - base) / dx);
+            }
+            else if (dx < 0.0)
+            {
+                lo = max(lo, (upper - base) / dx);
+                hi = min(hi, (lower - base) / dx);
+            }
+            else
+            {
+                if (base < lower || base >= upper) { lo = hi + 1; }
+            }
+        };
+
+        // For a closed range [lower, upper]:
+        //   Intersect [lo, hi] with {x : lower <= f(x) <= upper}.
+        auto narrow_closed = [](double base, double dx, double lower, double upper,
+                                double& lo, double& hi)
+        {
+            if (lo > hi) return;
+            if (dx > 0.0)
+            {
+                lo = max(lo, (lower - base) / dx);
+                hi = min(hi, (upper - base) / dx);
+            }
+            else if (dx < 0.0)
+            {
+                lo = max(lo, (upper - base) / dx);
+                hi = min(hi, (lower - base) / dx);
+            }
+            else
+            {
+                if (base < lower || base > upper) { lo = hi + 1; }
+            }
+        };
+
+        // Helper: clamp a double to [0, max_val] and convert to uint32_t.
+        auto clamp_to_uint32 = [](double v, uint32_t max_val) -> uint32_t
+        {
+            if (v <= 0.0) return 0;
+            if (v >= static_cast<double>(max_val)) return max_val;
+            return static_cast<uint32_t>(v);
+        };
+
+        // --- Compute continuous x-interval for "inside" region ---
+        //     Inside: src_i in [0, dim_i - 1) for all three axes.
+        double in_lo = 0.0, in_hi = dw;
+        narrow_half_open(base_x, dx_x, 0.0, static_cast<double>(src_w - 1), in_lo, in_hi);
+        narrow_half_open(base_y, dx_y, 0.0, static_cast<double>(src_h - 1), in_lo, in_hi);
+        narrow_half_open(base_z, dx_z, 0.0, static_cast<double>(src_d - 1), in_lo, in_hi);
+
+        // --- Compute continuous x-interval for "extended" region ---
+        //     Extended: src_i in [-1, dim_i] for all three axes.
+        double ext_lo = 0.0, ext_hi = dw;
+        narrow_closed(base_x, dx_x, -1.0, static_cast<double>(src_w), ext_lo, ext_hi);
+        narrow_closed(base_y, dx_y, -1.0, static_cast<double>(src_h), ext_lo, ext_hi);
+        narrow_closed(base_z, dx_z, -1.0, static_cast<double>(src_d), ext_lo, ext_hi);
+
+        // --- Convert continuous intervals to integer x-positions ---
+        //
+        // For the half-open inside interval [in_lo, in_hi):
+        //   First valid integer x >= in_lo:  ceil(in_lo)
+        //   Past-end (first integer >= in_hi): ceil(in_hi)
+        //   (See analysis: for strict <, last valid int < threshold, so past-end = ceil(threshold))
+        //
+        // For the closed extended interval [ext_lo, ext_hi]:
+        //   First valid integer x >= ext_lo:  ceil(ext_lo)
+        //   Past-end (first integer > ext_hi): floor(ext_hi) + 1
+
+        if (in_lo >= in_hi)
+        {
+            x_in_start = x_in_end = 0;
+        }
+        else
+        {
+            x_in_start = clamp_to_uint32(ceil(in_lo), dst_w);
+            x_in_end = clamp_to_uint32(ceil(in_hi), dst_w);
+            if (x_in_start >= x_in_end) x_in_start = x_in_end = 0;
+        }
+
+        if (ext_lo > ext_hi)
+        {
+            x_ext_start = x_ext_end = 0;
+            x_in_start = x_in_end = 0;
+        }
+        else
+        {
+            x_ext_start = clamp_to_uint32(ceil(ext_lo), dst_w);
+            x_ext_end = clamp_to_uint32(floor(ext_hi) + 1.0, dst_w);
+            if (x_ext_start >= x_ext_end)
+            {
+                x_ext_start = x_ext_end = 0;
+                x_in_start = x_in_end = 0;
+            }
+        }
+
+        // --- Verify and adjust boundary pixels ---
+        //
+        // The continuous computation can be off by ±1 pixel due to floating-point rounding
+        // (e.g., a threshold that falls exactly on an integer boundary).  We verify the
+        // outermost pixels of each zone using the direct formula (base + dx * x) and
+        // adjust by at most one position in each direction.  This guarantees exact
+        // agreement with the per-pixel classification that the reference uses.
+
+        auto is_inside = [&](uint32_t x) -> bool
+        {
+            double sx = base_x + dx_x * x;
+            double sy = base_y + dx_y * x;
+            double sz = base_z + dx_z * x;
+            return sx >= 0 && sx < (src_w - 1) &&
+                   sy >= 0 && sy < (src_h - 1) &&
+                   sz >= 0 && sz < (src_d - 1);
+        };
+
+        auto is_extended = [&](uint32_t x) -> bool
+        {
+            double sx = base_x + dx_x * x;
+            double sy = base_y + dx_y * x;
+            double sz = base_z + dx_z * x;
+            return sx >= -1 && sx <= src_w &&
+                   sy >= -1 && sy <= src_h &&
+                   sz >= -1 && sz <= src_d;
+        };
+
+        // Expand/contract extended boundaries (at most ±1 per side).
+        if (x_ext_start > 0 && is_extended(x_ext_start - 1))
+            --x_ext_start;
+        while (x_ext_start < x_ext_end && !is_extended(x_ext_start))
+            ++x_ext_start;
+
+        if (x_ext_end < dst_w && is_extended(x_ext_end))
+            ++x_ext_end;
+        while (x_ext_end > x_ext_start && !is_extended(x_ext_end - 1))
+            --x_ext_end;
+
+        // Expand/contract inside boundaries (at most ±1 per side).
+        if (x_in_start > x_ext_start && is_inside(x_in_start - 1))
+            --x_in_start;
+        while (x_in_start < x_in_end && !is_inside(x_in_start))
+            ++x_in_start;
+
+        if (x_in_end < x_ext_end && is_inside(x_in_end))
+            ++x_in_end;
+        while (x_in_end > x_in_start && !is_inside(x_in_end - 1))
+            --x_in_end;
+
+        // Enforce the ordering invariant:
+        //   0 <= x_ext_start <= x_in_start <= x_in_end <= x_ext_end <= dst_w
+        x_in_start = max(x_in_start, x_ext_start);
+        x_in_end = min(x_in_end, x_ext_end);
+        if (x_in_start > x_in_end) x_in_end = x_in_start;
+    }
+
     /// Fast trilinear warp for a single pixel type.
     ///
-    /// This mirrors the reference's TriLinearWarp but applies the same three optimizations
-    /// as FastNearestNeighborWarp (incremental position, direct pointer arithmetic, raw
-    /// doubles). The structure is identical:
+    /// This mirrors the reference's TriLinearWarp but applies four optimizations:
+    ///   1. Incremental source-position computation (col0 accumulation per x-step)
+    ///   2. Direct pointer arithmetic (precomputed strides, no GetPointerToPixel)
+    ///   3. Raw doubles instead of Eigen types in the inner loop
+    ///   4. Scanline-based zone precomputation (no per-pixel classification)
     ///
-    ///   z-loop  →  precompute z_contrib = col2*z + col3
-    ///   y-loop  →  precompute scanline start = col1*y + z_contrib; compute dst_ptr
-    ///   x-loop  →  classify source position, sample (inside or border), advance
+    /// For each scanline (y, z), ComputeScanlineSegments solves the linear inequalities
+    /// to determine four x-positions that divide the scanline into five contiguous zones:
     ///
-    /// For each destination voxel, the source position is classified into one of three
-    /// zones (see FastPixelPosition / GetPixelPositionForTriLinear). Depending on the
-    /// zone:
-    ///   - kInside:          fast path — SampleTrilinearInside (no clamping needed)
-    ///   - kOnePixelOutside: boundary path — SampleTrilinearBorder (clamped reads)
-    ///   - kOutside:         zero fill
+    ///     [0, x_ext_start)           — outside:  zero-fill via memset
+    ///     [x_ext_start, x_in_start)  — border:   SampleTrilinearBorder (clamped reads)
+    ///     [x_in_start, x_in_end)     — inside:   SampleTrilinearInside (fast, no clamping)
+    ///     [x_in_end, x_ext_end)      — border:   SampleTrilinearBorder (clamped reads)
+    ///     [x_ext_end, dst_w)         — outside:  zero-fill via memset
+    ///
+    /// The interior zone (zone 3) is the hot path — it processes the vast majority of
+    /// pixels with no branching and no bounds checking, calling SampleTrilinearInside
+    /// directly.  The border zones (2 and 4) are typically very thin (a few pixels wide)
+    /// and use the clamped SampleTrilinearBorder.  The outside zones (1 and 5) are
+    /// zero-filled in bulk with memset.
+    ///
+    /// Source positions are recomputed from the direct formula (base + dx * x) at each
+    /// zone boundary, then accumulated incrementally within each zone.  This avoids
+    /// accumulation drift across zone boundaries.
     ///
     /// \tparam t  The pixel value type (uint8_t, uint16_t, or float).
     template <typename t>
@@ -493,45 +667,86 @@ namespace
 
             for (uint32_t y = 0; y < dst_h; ++y)
             {
-                // Source position at x=0 for this scanline.
-                double src_x = tf.dy_src_x * y + z_contrib_x;
-                double src_y = tf.dy_src_y * y + z_contrib_y;
-                double src_z = tf.dy_src_z * y + z_contrib_z;
+                // Source position at x=0 for this scanline (the "scanline base").
+                const double scanline_base_x = tf.dy_src_x * y + z_contrib_x;
+                const double scanline_base_y = tf.dy_src_y * y + z_contrib_y;
+                const double scanline_base_z = tf.dy_src_z * y + z_contrib_z;
 
                 t* dst_ptr = reinterpret_cast<t*>(
                     dst_base +
                     static_cast<size_t>(z) * dst_stride_plane +
                     static_cast<size_t>(y) * dst_stride_line);
 
-                for (uint32_t x = 0; x < dst_w; ++x)
-                {
-                    // Classify the source position and dispatch to the appropriate
-                    // sampling strategy. This matches the reference's switch on
-                    // ReferenceWarp::GetPixelPositionForTriLinear.
-                    switch (GetPixelPositionForTriLinear(src_w, src_h, src_d, src_x, src_y, src_z))
-                    {
-                    case FastPixelPosition::kInside:
-                        *dst_ptr = SampleTrilinearInside<t>(
-                            src_base, src_stride_line, src_stride_plane,
-                            src_x, src_y, src_z);
-                        break;
-                    case FastPixelPosition::kOnePixelOutside:
-                        *dst_ptr = SampleTrilinearBorder<t>(
-                            src_base, src_stride_line, src_stride_plane,
-                            src_w, src_h, src_d,
-                            src_x, src_y, src_z);
-                        break;
-                    case FastPixelPosition::kOutside:
-                        *dst_ptr = 0;
-                        break;
-                    }
+                // Determine the five zones for this scanline by solving the linear
+                // inequalities on the source coordinates.
+                uint32_t x_ext_start, x_ext_end, x_in_start, x_in_end;
+                ComputeScanlineSegments(
+                    scanline_base_x, scanline_base_y, scanline_base_z,
+                    tf.dx_src_x, tf.dx_src_y, tf.dx_src_z,
+                    src_w, src_h, src_d, dst_w,
+                    x_ext_start, x_ext_end, x_in_start, x_in_end);
 
-                    ++dst_ptr;
-                    // Incremental advance — same as in FastNearestNeighborWarp.
-                    src_x += tf.dx_src_x;
-                    src_y += tf.dx_src_y;
-                    src_z += tf.dx_src_z;
+                // Zone 1: [0, x_ext_start) — outside, zero-fill.
+                // All supported pixel types (uint8_t, uint16_t, float) represent zero
+                // as all-zero bytes, so memset is safe and fast.
+                if (x_ext_start > 0)
+                    memset(dst_ptr, 0, static_cast<size_t>(x_ext_start) * sizeof(t));
+
+                // Zone 2: [x_ext_start, x_in_start) — border (clamped trilinear sampling).
+                if (x_in_start > x_ext_start)
+                {
+                    double src_x = scanline_base_x + tf.dx_src_x * x_ext_start;
+                    double src_y = scanline_base_y + tf.dx_src_y * x_ext_start;
+                    double src_z = scanline_base_z + tf.dx_src_z * x_ext_start;
+                    for (uint32_t x = x_ext_start; x < x_in_start; ++x)
+                    {
+                        dst_ptr[x] = SampleTrilinearBorder<t>(
+                            src_base, src_stride_line, src_stride_plane,
+                            src_w, src_h, src_d, src_x, src_y, src_z);
+                        src_x += tf.dx_src_x;
+                        src_y += tf.dx_src_y;
+                        src_z += tf.dx_src_z;
+                    }
                 }
+
+                // Zone 3: [x_in_start, x_in_end) — inside (fast path, no classification).
+                // This is the hot loop for the vast majority of pixels.
+                if (x_in_end > x_in_start)
+                {
+                    double src_x = scanline_base_x + tf.dx_src_x * x_in_start;
+                    double src_y = scanline_base_y + tf.dx_src_y * x_in_start;
+                    double src_z = scanline_base_z + tf.dx_src_z * x_in_start;
+                    for (uint32_t x = x_in_start; x < x_in_end; ++x)
+                    {
+                        dst_ptr[x] = SampleTrilinearInside<t>(
+                            src_base, src_stride_line, src_stride_plane,
+                            src_x, src_y, src_z);
+                        src_x += tf.dx_src_x;
+                        src_y += tf.dx_src_y;
+                        src_z += tf.dx_src_z;
+                    }
+                }
+
+                // Zone 4: [x_in_end, x_ext_end) — border (clamped trilinear sampling).
+                if (x_ext_end > x_in_end)
+                {
+                    double src_x = scanline_base_x + tf.dx_src_x * x_in_end;
+                    double src_y = scanline_base_y + tf.dx_src_y * x_in_end;
+                    double src_z = scanline_base_z + tf.dx_src_z * x_in_end;
+                    for (uint32_t x = x_in_end; x < x_ext_end; ++x)
+                    {
+                        dst_ptr[x] = SampleTrilinearBorder<t>(
+                            src_base, src_stride_line, src_stride_plane,
+                            src_w, src_h, src_d, src_x, src_y, src_z);
+                        src_x += tf.dx_src_x;
+                        src_y += tf.dx_src_y;
+                        src_z += tf.dx_src_z;
+                    }
+                }
+
+                // Zone 5: [x_ext_end, dst_w) — outside, zero-fill.
+                if (x_ext_end < dst_w)
+                    memset(dst_ptr + x_ext_end, 0, static_cast<size_t>(dst_w - x_ext_end) * sizeof(t));
             }
         }
     }
