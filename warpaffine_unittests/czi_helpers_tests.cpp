@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include <iomanip>
 #include <gtest/gtest.h>
 #include "../libwarpaffine/czi_helpers.h"
 #include "mem_output_stream.h"
@@ -12,6 +11,7 @@
 #include <array>
 #include <sstream>
 #include <locale>
+#include <iomanip>
 
 using namespace std;
 using namespace libCZI;
