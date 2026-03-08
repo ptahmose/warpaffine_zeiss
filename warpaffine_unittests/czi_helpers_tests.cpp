@@ -9,6 +9,9 @@
 #include <charconv>
 #include <limits>
 #include <cmath>
+#include <array>
+#include <sstream>
+#include <locale>
 
 using namespace std;
 using namespace libCZI;
