@@ -348,7 +348,7 @@ namespace
         return stream.str();
     }
 
-    string GetSubBlockMetadataXml(double stage_pos_x,double stage_pos_y)
+    string GetSubBlockMetadataXml(double stage_pos_x, double stage_pos_y)
     {
         string metadata;
         metadata.reserve(192);
