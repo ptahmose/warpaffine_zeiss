@@ -10,12 +10,10 @@
 #include <utility>
 #include <charconv>
 
-#include <tinyxml2.h>
-
 using namespace std;
 using namespace libCZI;
 
-namespace 
+namespace
 {
     /// Attempts to robustly parse a double from the given data, returning an empty optional if parsing fails.
     ///
@@ -35,7 +33,7 @@ namespace
         const double value = std::strtod(text, &end_ptr);
 
         // Check for full consumption and no range errors
-        if (end_ptr == text || *end_ptr != '\0' || errno == ERANGE) 
+        if (end_ptr == text || *end_ptr != '\0' || errno == ERANGE)
         {
             return std::nullopt;
         }
@@ -473,55 +471,16 @@ static bool IsCoordinateInBrick(const libCZI::CDimCoordinate& brick_coordinate, 
 
 /*static*/std::tuple<double, double> CziHelpers::GetStagePositionFromXmlMetadata(const libCZI::ISubBlock* sub_block)
 {
-    const void* ptr;
-    size_t size;
-    sub_block->DangerousGetRawData(libCZI::ISubBlock::MemBlkType::Metadata, ptr, size);
+    const auto sub_block_metadata = libCZI::CreateSubBlockMetadataFromSubBlock(sub_block);
 
-    double stageX = std::numeric_limits<double>::quiet_NaN();
-    double stageY = std::numeric_limits<double>::quiet_NaN();
-
-    if (ptr != nullptr && size > 0)
+    if (sub_block_metadata->IsXmlValid())
     {
-        tinyxml2::XMLDocument doc;
-        tinyxml2::XMLError result = doc.Parse(static_cast<const char*>(ptr), size);
-
-        if (result == tinyxml2::XML_SUCCESS)
+        std::tuple<double, double> stage_position;
+        if (sub_block_metadata->TryGetStagePositionFromTags(&stage_position))
         {
-            // Navigate to METADATA/Tags
-            tinyxml2::XMLElement* metadata = doc.FirstChildElement("METADATA");
-            if (metadata)
-            {
-                tinyxml2::XMLElement* tags = metadata->FirstChildElement("Tags");
-                if (tags)
-                {
-                    tinyxml2::XMLElement* xElem = tags->FirstChildElement("StageXPosition");
-                    if (xElem)
-                    {
-                        const auto double_value = TryParseDouble(xElem->GetText());
-                        if (double_value.has_value())
-                        {
-                            stageX = double_value.value();
-                        }
-                    }
-
-                    tinyxml2::XMLElement* yElem = tags->FirstChildElement("StageYPosition");
-                    if (yElem)
-                    {
-                        const auto double_value = TryParseDouble(yElem->GetText());
-                        if (double_value.has_value())
-                        {
-                            stageY = double_value.value();
-                        }
-                    }
-                }
-            }
-        }
-
-        if (std::isnan(stageX) || std::isnan(stageY) || std::isinf(stageX) || std::isinf(stageY))
-        {
-            stageX = stageY = std::numeric_limits<double>::quiet_NaN();
+            return stage_position;
         }
     }
 
-    return std::make_tuple(stageX, stageY);
+    return std::make_tuple(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
 }

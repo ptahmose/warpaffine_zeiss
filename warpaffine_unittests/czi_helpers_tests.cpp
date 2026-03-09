@@ -5,6 +5,13 @@
 #include <gtest/gtest.h>
 #include "../libwarpaffine/czi_helpers.h"
 #include "mem_output_stream.h"
+#include <charconv>
+#include <limits>
+#include <cmath>
+#include <array>
+#include <sstream>
+#include <locale>
+#include <iomanip>
 
 using namespace std;
 using namespace libCZI;
@@ -303,5 +310,158 @@ TEST(Czi_Helpers, GetSubblocksForBrickWithMindexTest)
         b = sub_block->GetSubBlockInfo().coordinate.TryGetPosition(DimensionIndex::C, &c_coordinate);
         EXPECT_TRUE(b);
         EXPECT_EQ(c_coordinate, 1);
+    }
+}
+
+namespace
+{
+    string FormatDoubleForXml(double value)
+    {
+        // XSD requires the special floating-point values to be written as NaN, INF and -INF.
+        // Handling them explicitly avoids implementation-specific spellings from stream formatting.
+        if (std::isnan(value))
+        {
+            return "NaN";
+        }
+
+        if (std::isinf(value))
+        {
+            return std::signbit(value) ? "-INF" : "INF";
+        }
+
+        // Use to_chars for finite values because it is locale-independent and does not allocate.
+        std::array<char, 64> buffer;
+        const auto result = std::to_chars(
+            buffer.data(),
+            buffer.data() + buffer.size(),
+            value,
+            std::chars_format::general,
+            std::numeric_limits<double>::max_digits10);
+
+        if (result.ec == std::errc())
+        {
+            return string(buffer.data(), result.ptr);
+        }
+
+        // Fallback for platforms where floating-point to_chars is not fully available.
+        // The classic locale guarantees '.' as decimal separator.
+        ostringstream stream;
+        stream.imbue(std::locale::classic());
+        stream << std::setprecision(std::numeric_limits<double>::max_digits10) << value;
+        return stream.str();
+    }
+
+    string GetSubBlockMetadataXml(double stage_pos_x, double stage_pos_y)
+    {
+        string metadata;
+        metadata.reserve(192);
+        metadata += "<METADATA><Tags>";
+        metadata += "<StageXPosition>";
+        metadata += FormatDoubleForXml(stage_pos_x);
+        metadata += "</StageXPosition>";
+        metadata += "<StageYPosition>";
+        metadata += FormatDoubleForXml(stage_pos_y);
+        metadata += "</StageYPosition>";
+        metadata += "</Tags></METADATA>";
+        return metadata;
+    }
+}
+
+TEST(Czi_Helpers, GetSubblocksAndCheckGetStagePosition)
+{
+    // first we create a CZI-document (Z=0...9 C=0) in memory, which
+    //  we then load and run our test
+    auto writer = CreateCZIWriter();
+    auto outStream = make_shared<CMemOutputStream>(0);
+
+    auto spWriterInfo = make_shared<CCziWriterInfo>();
+    writer->Create(outStream, spWriterInfo);
+    auto bitmap = CreateTestBitmap(PixelType::Gray8, 4, 4);
+
+    ScopedBitmapLockerSP lockBm{ bitmap };
+    AddSubBlockInfoStridedBitmap addSbBlkInfo;
+
+    for (int z = 0; z < 10; ++z)
+    {
+        addSbBlkInfo.Clear();
+        addSbBlkInfo.coordinate.Set(DimensionIndex::C, 0);
+        addSbBlkInfo.coordinate.Set(DimensionIndex::Z, z);
+        addSbBlkInfo.mIndexValid = true;
+        addSbBlkInfo.mIndex = 0;
+        addSbBlkInfo.x = 0;
+        addSbBlkInfo.y = 0;
+        addSbBlkInfo.logicalWidth = bitmap->GetWidth();
+        addSbBlkInfo.logicalHeight = bitmap->GetHeight();
+        addSbBlkInfo.physicalWidth = bitmap->GetWidth();
+        addSbBlkInfo.physicalHeight = bitmap->GetHeight();
+        addSbBlkInfo.PixelType = bitmap->GetPixelType();
+        addSbBlkInfo.ptrBitmap = lockBm.ptrDataRoi;
+        addSbBlkInfo.strideBitmap = lockBm.stride;
+
+        if (z % 2 == 0)
+        {
+            string metadata = GetSubBlockMetadataXml(1.5 * z, -2.5 * z);
+            addSbBlkInfo.ptrSbBlkMetadata = metadata.c_str();
+            addSbBlkInfo.sbBlkMetadataSize = static_cast<uint32_t>(metadata.size());
+            writer->SyncAddSubBlock(addSbBlkInfo);
+        }
+        else
+        {
+            addSbBlkInfo.ptrSbBlkMetadata = nullptr;
+            addSbBlkInfo.sbBlkMetadataSize = 0;
+            writer->SyncAddSubBlock(addSbBlkInfo);
+        }
+    }
+
+    PrepareMetadataInfo prepare_metadata_info;
+    auto metaDataBuilder = writer->GetPreparedMetadata(prepare_metadata_info);
+
+    WriteMetadataInfo write_metadata_info;
+    const auto& strMetadata = metaDataBuilder->GetXml();
+    write_metadata_info.szMetadata = strMetadata.c_str();
+    write_metadata_info.szMetadataSize = strMetadata.size() + 1;
+    write_metadata_info.ptrAttachment = nullptr;
+    write_metadata_info.attachmentSize = 0;
+    writer->SyncWriteMetadata(write_metadata_info);
+
+    writer->Close();
+    writer.reset();		// not needed anymore
+
+    size_t cziData_Size;
+    auto cziData = outStream->GetCopy(&cziData_Size);
+    outStream.reset();	// not needed anymore
+
+    // now, open the CZI-document from the memory-blob
+    auto inputStream = CreateStreamFromMemory(cziData, cziData_Size);
+    auto reader = CreateCZIReader();
+    reader->Open(inputStream);
+
+    auto brick_coordinate = CDimCoordinate::Parse("C0");
+    auto map_z_subblocks = CziHelpers::GetSubblocksForBrick(reader.get(), brick_coordinate, TileIdentifier::GetForNoMIndexAndNoSceneIndex());
+    ASSERT_EQ(map_z_subblocks.size(), 10);
+    for (auto iterator = map_z_subblocks.cbegin(); iterator != map_z_subblocks.cend(); ++iterator)
+    {
+        auto sub_block = reader->ReadSubBlock(iterator->second);
+        ASSERT_TRUE(sub_block);
+        int z_coordinate;
+        bool b = sub_block->GetSubBlockInfo().coordinate.TryGetPosition(DimensionIndex::Z, &z_coordinate);
+        EXPECT_TRUE(b);
+        EXPECT_EQ(z_coordinate, iterator->first);
+        int c_coordinate;
+        b = sub_block->GetSubBlockInfo().coordinate.TryGetPosition(DimensionIndex::C, &c_coordinate);
+        EXPECT_TRUE(b);
+        EXPECT_EQ(c_coordinate, 0);
+
+        const auto stage_position = CziHelpers::GetStagePositionFromXmlMetadata(sub_block.get());
+        if (z_coordinate % 2 == 0)
+        {
+            EXPECT_DOUBLE_EQ(get<0>(stage_position), 1.5 * z_coordinate);
+            EXPECT_DOUBLE_EQ(get<1>(stage_position), -2.5 * z_coordinate);
+        }
+        else
+        {
+            EXPECT_TRUE(isnan(get<0>(stage_position)));
+            EXPECT_TRUE(isnan(get<1>(stage_position)));
+        }
     }
 }
