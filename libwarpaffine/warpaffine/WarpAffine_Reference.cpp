@@ -2,12 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include <memory>
 #include "WarpAffine_Reference.h"
 #include "reference_warp.h"
-
-using namespace std;
-using namespace libCZI;
 
 void WarpAffine_Reference::Execute(
     const Eigen::Matrix4d& transformation,

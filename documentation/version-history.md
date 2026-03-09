@@ -20,3 +20,4 @@ version history                 {#version_history}
  0.7.0              | [20](https://github.com/ZEISS/warpaffine/pull/20) | add --illumination-angle CLI parameter for configurable deskew angle
  0.8.0              | [21](https://github.com/ZEISS/warpaffine/pull/21) | add option --allow-memory-oversubscription (allowing for memory oversubscription)
  0.8.1              | [22](https://github.com/ZEISS/warpaffine/pull/22) | remove dependency on tinyxml2
+ 0.8.2              | [23](https://github.com/ZEISS/warpaffine/pull/23) | add warp implementation 'fast'

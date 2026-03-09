@@ -7,6 +7,7 @@
 #include "IWarpAffine.h"
 #include "WarpAffine_IPP.h"
 #include "WarpAffineNull.h"
+#include "WarpAffine_Fast.h"
 #include "WarpAffine_Reference.h"
 
 using namespace std;
@@ -25,6 +26,8 @@ std::shared_ptr<IWarpAffine> CreateWarpAffine(WarpAffineImplementation implement
         return std::make_shared<WarpAffineNull>();
     case WarpAffineImplementation::kReference:
         return std::make_shared<WarpAffine_Reference>();
+    case WarpAffineImplementation::kFast:
+        return std::make_shared<WarpAffine_Fast>();
     }
 
     throw invalid_argument("unknown 'implementation' given.");

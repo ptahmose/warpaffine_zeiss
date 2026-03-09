@@ -11,7 +11,7 @@ Deskew-processing
 warpaffine.exe [OPTIONS]
 
 
-  version: 0.7.0
+  version: 0.8.2
 
 OPTIONS:
   -h, --help        Print this help message and exit
@@ -58,7 +58,7 @@ OPTIONS:
 
   -w, --warp_engine WARP_ENGINE_IMPLEMENTATION
                     Which warp-affine transformation implementation to use.
-                    Possible values are 'IPP', 'reference' or 'null'.
+                    Possible values are 'IPP', 'reference', 'fast' or 'null'.
 
       --stop_pipeline_after STOP_AFTER_OPERATION
                     For testing: stop the pipeline after operation. Possible
@@ -153,8 +153,11 @@ IPP version: 2022.1.0 (r0xc8d62893) - ippIP AVX2 (l9)
 * `-b,--bricksource BRICK_READER_IMPLEMENTATION` allows to chose between different implementations of the [ICziBrickReader](../libwarpaffine/brickreader/IBrickReader.h)-interface.
   The most stable implementation is `planereader2`, and it is therefore the recommended one (and it is the default).
 * `-t,--number_of_reader_threads NUMBER_OF_READER_THREADS` is used to give a parameter to the brick-reader - the number of threads which are used to read the data. '1' is the default value, and it is found that it has little impact on performance in general.
-* Different implementation of the warp-affine transformation can be chosen with the argument `-w,--warp_engine WARP_ENGINE_IMPLEMENTATION`. The IPP-based
-  implementation is only available if the application is compiled with the IPP library. The reference implementation is always available.
+* The argument `-w,--warp_engine WARP_ENGINE_IMPLEMENTATION` selects the implementation used for the warp-affine operation. The `reference` and `fast` implementations are always available. The `IPP`
+  implementation is available only when the application is built with IPP support.
+  The IPP-based implementation is limited to bricks of at most 4 GiB due to an IPP library constraint. If a larger brick is encountered, processing automatically falls back to the reference
+  implementation for that brick. The reference implementation prioritizes correctness and is correspondingly slower. The fast implementation is optimized and is expected to match the reference output
+  within floating-point tolerance. The IPP-based implementation may produce small differences, primarily due to implementation-specific border handling.
 * The option `--stop_pipeline_after STOP_AFTER_OPERATION` is intended to be used for testing/benchmarking, and allows to discard the data at certain points in the pipeline.
 * With the option `-c,--compression_options COMPRESSION_OPTIONS` the zstd-compression parameters (for the output file) can be specified. The syntax is as described [here](https://zeiss.github.io/libczi/classlib_c_z_i_1_1_utils.html#a4cb9b660d182e59a218f58d42bd04025).
   The default (if this option is not given) is `zstd1:ExplicitLevel=1;PreProcess=HiLoByteUnpack`.

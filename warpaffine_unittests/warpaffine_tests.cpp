@@ -9,9 +9,36 @@
 #include "testutilities.h"
 
 #include <math.h>
+#include <string>
 
 using namespace std;
 using namespace libCZI;
+
+class WarpAffineReferenceAndFastTest : public ::testing::TestWithParam<WarpAffineImplementation>
+{
+};
+
+static std::string GetWarpAffineImplementationName(
+    const ::testing::TestParamInfo<WarpAffineImplementation>& info)
+{
+    switch (info.param)
+    {
+    case WarpAffineImplementation::kReference:
+        return "Reference";
+    case WarpAffineImplementation::kFast:
+        return "Fast";
+    default:
+        return "Unknown";
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ReferenceCompatibleImplementations,
+    WarpAffineReferenceAndFastTest,
+    ::testing::Values(
+        WarpAffineImplementation::kReference,
+        WarpAffineImplementation::kFast),
+    GetWarpAffineImplementationName);
 
 static void CopyIntoBrick(Brick& dest_brick, const uint16_t* data)
 {
@@ -142,9 +169,9 @@ TEST(WarpAffine, MoveOnePixelToTheRightGray16IPP)
     TestMoveOnePixelToTheRightGray16(warp_affine.get());
 }
 
-TEST(WarpAffine, MoveOnePixelToTheRightGray16Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MoveOnePixelToTheRightGray16)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMoveOnePixelToTheRightGray16(warp_affine.get());
 }
 
@@ -157,12 +184,11 @@ TEST(WarpAffine, MoveOnePixelToTheRightGray8IPP)
     TestMoveOnePixelToTheRightGray8(warp_affine.get());
 }
 
-TEST(WarpAffine, MoveOnePixelToTheRightGray8Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MoveOnePixelToTheRightGray8)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMoveOnePixelToTheRightGray8(warp_affine.get());
 }
-
 
 // ----------------------------------------------------------------------------
 
@@ -229,9 +255,9 @@ TEST(WarpAffine, MoveOnePixelToTheLeftGray16IPP)
     TestMoveOnePixelToTheLeftGray16(warp_affine.get());
 }
 
-TEST(WarpAffine, MoveOnePixelToTheLeftGray16Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MoveOnePixelToTheLeftGray16)
 {
-    auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMoveOnePixelToTheLeftGray16(warp_affine.get());
 }
 
@@ -244,9 +270,9 @@ TEST(WarpAffine, MoveOnePixelToTheLeftGray8IPP)
     TestMoveOnePixelToTheLeftGray8(warp_affine.get());
 }
 
-TEST(WarpAffine, MoveOnePixelToTheLeftGray8Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MoveOnePixelToTheLeftGray8)
 {
-    auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMoveOnePixelToTheLeftGray8(warp_affine.get());
 }
 
@@ -300,9 +326,9 @@ TEST(WarpAffine, MoveOnePixelToTheRightAndUseOffsetForDestinationGray16IPP)
     MoveOnePixelToTheRightAndUseOffsetForDestination<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
-TEST(WarpAffine, MoveOnePixelToTheRightAndUseOffsetForDestinationGray16Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MoveOnePixelToTheRightAndUseOffsetForDestinationGray16)
 {
-    auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     MoveOnePixelToTheRightAndUseOffsetForDestination<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
@@ -315,9 +341,9 @@ TEST(WarpAffine, MoveOnePixelToTheRightAndUseOffsetForDestinationGray8IPP)
     MoveOnePixelToTheRightAndUseOffsetForDestination<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
-TEST(WarpAffine, MoveOnePixelToTheRightAndUseOffsetForDestinationGray8Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MoveOnePixelToTheRightAndUseOffsetForDestinationGray8)
 {
-    auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     MoveOnePixelToTheRightAndUseOffsetForDestination<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
@@ -359,9 +385,9 @@ static void TestLinearInterpolation2x2x2To1x1(IWarpAffine* warp_affine)
     EXPECT_TRUE(result_pixel == 4 || result_pixel == 5) << "The exact result is 4.5";
 }
 
-TEST(WarpAffine, LinearInterpolation2x2x2To1x1Reference)
+TEST_P(WarpAffineReferenceAndFastTest, LinearInterpolation2x2x2To1x1)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestLinearInterpolation2x2x2To1x1(warp_affine.get());
 }
 
@@ -437,9 +463,9 @@ TEST(WarpAffine, RotateBy90DegreeAroundZAxisIPP)
     TestRotateBy90DegreeAroundZAxis<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
-TEST(WarpAffine, RotateBy90DegreeAroundZAxisReference)
+TEST_P(WarpAffineReferenceAndFastTest, RotateBy90DegreeAroundZAxisGray16)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestRotateBy90DegreeAroundZAxis<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
@@ -452,9 +478,9 @@ TEST(WarpAffine, RotateBy90DegreeAroundZAxisGray8IPP)
     TestRotateBy90DegreeAroundZAxis<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
-TEST(WarpAffine, RotateBy90DegreeAroundZAxisGray8Reference)
+TEST_P(WarpAffineReferenceAndFastTest, RotateBy90DegreeAroundZAxisGray8)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestRotateBy90DegreeAroundZAxis<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
@@ -520,9 +546,9 @@ TEST(WarpAffine, RotateBy90DegreeAroundZAxisAndDestinationOffsetGray16IPP)
     TestRotateBy90DegreeAroundZAxisAndDestinationOffset<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
-TEST(WarpAffine, RotateBy90DegreeAroundZAxisAndDestinationOffsetGray16Reference)
+TEST_P(WarpAffineReferenceAndFastTest, RotateBy90DegreeAroundZAxisAndDestinationOffsetGray16)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestRotateBy90DegreeAroundZAxisAndDestinationOffset<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
@@ -535,9 +561,9 @@ TEST(WarpAffine, RotateBy90DegreeAroundZAxisAndDestinationOffsetGray8IPP)
     TestRotateBy90DegreeAroundZAxisAndDestinationOffset<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
-TEST(WarpAffine, RotateBy90DegreeAroundZAxisAndDestinationOffsetGray8Reference)
+TEST_P(WarpAffineReferenceAndFastTest, RotateBy90DegreeAroundZAxisAndDestinationOffsetGray8)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestRotateBy90DegreeAroundZAxisAndDestinationOffset<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
@@ -610,9 +636,9 @@ TEST(WarpAffine, MirrorOnZYPlaneGray16IPP)
     TestMirrorOnYZPlane<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
-TEST(WarpAffine, MirrorOnZYPlaneGray16Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MirrorOnZYPlaneGray16)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMirrorOnYZPlane<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
@@ -625,9 +651,9 @@ TEST(WarpAffine, MirrorOnZYPlaneGray8IPP)
     TestMirrorOnYZPlane<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
-TEST(WarpAffine, MirrorOnZYPlaneGray8Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MirrorOnZYPlaneGray8)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMirrorOnYZPlane<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
@@ -700,9 +726,9 @@ TEST(WarpAffine, MirrorOnXYPlaneGray16IPP)
     TestMirrorOnXYPlane<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
-TEST(WarpAffine, MirrorOnXYPlaneGray16Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MirrorOnXYPlaneGray16)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMirrorOnXYPlane<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
@@ -715,9 +741,9 @@ TEST(WarpAffine, MirrorOnXYPlaneGray8IPP)
     TestMirrorOnXYPlane<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
-TEST(WarpAffine, MirrorOnXYPlaneGray8Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MirrorOnXYPlaneGray8)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMirrorOnXYPlane<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 // ----------------------------------------------------------------------------
@@ -789,9 +815,9 @@ TEST(WarpAffine, MirrorOnXZPlaneGray16IPP)
     TestMirrorOnXZPlane<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
-TEST(WarpAffine, MirrorOnXZPlaneGray16Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MirrorOnXZPlaneGray16)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMirrorOnXZPlane<uint16_t, PixelType::Gray16>(warp_affine.get());
 }
 
@@ -804,9 +830,9 @@ TEST(WarpAffine, MirrorOnXZPlaneGray8IPP)
     TestMirrorOnXZPlane<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
-TEST(WarpAffine, MirrorOnXZPlaneGray8Reference)
+TEST_P(WarpAffineReferenceAndFastTest, MirrorOnXZPlaneGray8)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
     TestMirrorOnXZPlane<uint8_t, PixelType::Gray8>(warp_affine.get());
 }
 
@@ -865,35 +891,35 @@ static void ExtractAllPixelsAndCheck(WarpAffineImplementation warpaffine_impleme
     }
 }
 
-TEST(WarpAffine, ExtractAllPixelsAndCheckGray8ReferenceNearestNeighbor)
+TEST_P(WarpAffineReferenceAndFastTest, ExtractAllPixelsAndCheckGray8NearestNeighbor)
 {
     // we put the destination volume at all pixels of the source volume one after another, and check that the extracted pixel is the expected one
-    ExtractAllPixelsAndCheck<uint8_t, PixelType::Gray8>(WarpAffineImplementation::kReference, Interpolation::kNearestNeighbor);
+    ExtractAllPixelsAndCheck<uint8_t, PixelType::Gray8>(GetParam(), Interpolation::kNearestNeighbor);
 }
 
-TEST(WarpAffine, ExtractAllPixelsAndCheckGray16ReferenceNearestNeighbor)
+TEST_P(WarpAffineReferenceAndFastTest, ExtractAllPixelsAndCheckGray16NearestNeighbor)
 {
     // we put the destination volume at all pixels of the source volume one after another, and check that the extracted pixel is the expected one
-    ExtractAllPixelsAndCheck<uint16_t, PixelType::Gray16>(WarpAffineImplementation::kReference, Interpolation::kNearestNeighbor);
+    ExtractAllPixelsAndCheck<uint16_t, PixelType::Gray16>(GetParam(), Interpolation::kNearestNeighbor);
 }
 
-TEST(WarpAffine, ExtractAllPixelsAndCheckGray8ReferenceTriLinear)
+TEST_P(WarpAffineReferenceAndFastTest, ExtractAllPixelsAndCheckGray8TriLinear)
 {
     // we put the destination volume at all pixels of the source volume one after another, and check that the extracted pixel is the expected one
-    ExtractAllPixelsAndCheck<uint8_t, PixelType::Gray8>(WarpAffineImplementation::kReference, Interpolation::kBilinear);
+    ExtractAllPixelsAndCheck<uint8_t, PixelType::Gray8>(GetParam(), Interpolation::kBilinear);
 }
 
-TEST(WarpAffine, ExtractAllPixelsAndCheckGray16ReferenceTriLinear)
+TEST_P(WarpAffineReferenceAndFastTest, ExtractAllPixelsAndCheckGray16TriLinear)
 {
     // we put the destination volume at all pixels of the source volume one after another, and check that the extracted pixel is the expected one
-    ExtractAllPixelsAndCheck<uint16_t, PixelType::Gray16>(WarpAffineImplementation::kReference, Interpolation::kBilinear);
+    ExtractAllPixelsAndCheck<uint16_t, PixelType::Gray16>(GetParam(), Interpolation::kBilinear);
 }
 
 // ----------------------------------------------------------------------------
 
-TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceNearestNeighbor)
+TEST_P(WarpAffineReferenceAndFastTest, SampleVolumeQuarterOfAPixelOffGray8NearestNeighbor)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
 
     static const uint8_t source_data[2 * 2 * 3] =
     {
@@ -943,9 +969,9 @@ TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceNearestNeighbor)
     }
 }
 
-TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceTriLinear)
+TEST_P(WarpAffineReferenceAndFastTest, SampleVolumeQuarterOfAPixelOffGray8TriLinear)
 {
-    const auto warp_affine = CreateWarpAffine(WarpAffineImplementation::kReference);
+    const auto warp_affine = CreateWarpAffine(GetParam());
 
     static const uint8_t source_data[2 * 2 * 3] =
     {
@@ -1006,7 +1032,6 @@ TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8ReferenceTriLinear)
         }
     }
 }
-
 
 TEST(WarpAffine, SampleVolumeQuarterOfAPixelOffGray8IppBicubic)
 {
