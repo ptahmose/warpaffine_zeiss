@@ -83,7 +83,7 @@ add_library(libwarpaffine ${LIBWARPAFFINE_SRCFILES})
 
 target_compile_definitions(libwarpaffine PRIVATE _LIBCZISTATICLIB RAPIDJSON_HAS_STDSTRING=1)
 
-target_link_libraries(libwarpaffine PRIVATE TBB::tbb libCZIStatic CLI11::CLI11 Eigen3::Eigen tinyxml2)
+target_link_libraries(libwarpaffine PRIVATE TBB::tbb libCZIStatic CLI11::CLI11 Eigen3::Eigen)
 
 target_include_directories(libwarpaffine PRIVATE ${IPP_INCLUDE_DIRS}  ${TBB_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS} ${LIBCZI_INCLUDE_DIR})
 
