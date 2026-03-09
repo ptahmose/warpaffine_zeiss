@@ -969,9 +969,9 @@ namespace
             break;
         default:
         {
-            ostringstream ss;
-            ss << "Unsupported pixel type: " << static_cast<int>(source_brick.info.pixelType);
-            throw runtime_error(ss.str());
+            ostringstream string_stream;
+            string_stream << "An unsupported pixeltype (" << static_cast<int>(source_brick.info.pixelType) << ", " << Utils::PixelTypeToInformalString(source_brick.info.pixelType) << ") was encountered.";
+            throw runtime_error(string_stream.str());
         }
         }
     }
@@ -995,9 +995,9 @@ namespace
             break;
         default:
         {
-            ostringstream ss;
-            ss << "Unsupported pixel type: " << static_cast<int>(source_brick.info.pixelType);
-            throw runtime_error(ss.str());
+            ostringstream string_stream;
+            string_stream << "An unsupported pixeltype (" << static_cast<int>(source_brick.info.pixelType) << ", " << Utils::PixelTypeToInformalString(source_brick.info.pixelType) << ") was encountered.";
+            throw runtime_error(string_stream.str());
         }
         }
     }
