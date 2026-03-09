@@ -156,8 +156,7 @@ namespace
         // The continuous condition for lround(f(x)) ∈ [0, dim) is f(x) ∈ (-0.5, dim-0.5).
         // We approximate this with the half-open interval [-0.5, dim-0.5) for the solver,
         // then the verification step handles the open-lower-bound edge case (lround(-0.5) = -1).
-        auto narrow_half_open = [](double base, double dx, double lower, double upper,
-                                   double& lo, double& hi)
+        auto narrow_half_open = [](double base, double dx, double lower, double upper, double& lo, double& hi)
             {
                 if (lo >= hi)
                 {
@@ -594,8 +593,7 @@ namespace
         //   - If dx > 0: f is increasing, so x >= (lower-base)/dx  and  x < (upper-base)/dx
         //   - If dx < 0: f is decreasing, inequalities flip
         //   - If dx == 0: f is constant, the constraint is either always or never satisfied
-        auto narrow_half_open = [](double base, double dx, double lower, double upper,
-                                   double& lo, double& hi)
+        auto narrow_half_open = [](double base, double dx, double lower, double upper, double& lo, double& hi)
             {
                 if (lo >= hi)
                 {
