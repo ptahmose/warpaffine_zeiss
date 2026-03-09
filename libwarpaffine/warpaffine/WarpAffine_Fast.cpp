@@ -61,7 +61,6 @@
 ///   lround() result for either nearest-neighbor or trilinear interpolation.
 
 #include "WarpAffine_Fast.h"
-#include <algorithm>
 #include <cmath>
 #include <algorithm>
 #include <cstring>
