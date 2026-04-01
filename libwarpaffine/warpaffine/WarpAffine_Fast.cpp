@@ -63,6 +63,7 @@
 #include "WarpAffine_Fast.h"
 #include <cmath>
 #include <algorithm>
+#include <cstdint>
 #include <cstring>
 #include <limits>
 #include <sstream>
@@ -352,30 +353,32 @@ namespace
 
     // ---- Trilinear warp -------------------------------------------------------
 
-    /// Clamp an interpolated double value to the valid range of pixel type t, then round
-    /// to the nearest representable value.
+    /// Clamp and convert an interpolated double value to pixel type t.
     ///
-    /// This replicates the reference's return expression:
-    ///     (c < 0) ? 0 : c > max ? max : static_cast<t>(lround(c))
+    /// For integer pixel types (uint8_t, uint16_t): clamp to [0, max] via std::clamp
+    /// (compiles to branchless vmaxsd/vminsd) then round by adding 0.5 and truncating
+    /// (compiles to vaddsd + vcvttsd2si — fully inline, no CRT call).
+    /// This is semantically identical to lround for non-negative inputs, which is
+    /// guaranteed here by the preceding clamp: for any x >= 0,
+    ///   static_cast<int32_t>(x + 0.5)  ==  lround(x)
+    /// because both round half-integers upward, and the addition x + 0.5 is exact for
+    /// all values in [0, 65535] (well within the 52-bit mantissa range).
     ///
-    /// For integer pixel types (uint8_t, uint16_t), this rounds to the nearest integer
-    /// and clamps to [0, max]. For float, lround produces a long which is then cast back
-    /// to float — this matches the reference behavior (which effectively rounds float
-    /// pixel values to the nearest integer).
+    /// For floating-point pixel types (float): cast directly to t without rounding or
+    /// clamping. Trilinear interpolation of float source values produces a meaningful
+    /// fractional result that must be preserved.
     template <typename t>
     inline t ClampAndRound(double c)
     {
-        if (c < 0)
+        if constexpr (is_floating_point<t>::value)
         {
-            return static_cast<t>(0);
+            return static_cast<t>(c);
         }
-
-        if (c > static_cast<double>(numeric_limits<t>::max()))
+        else
         {
-            return numeric_limits<t>::max();
+            const double clamped = clamp(c, 0.0, static_cast<double>(numeric_limits<t>::max()));
+            return static_cast<t>(static_cast<int32_t>(clamped + 0.5));
         }
-
-        return static_cast<t>(lround(c));
     }
 
     /// Sample a voxel value from the source brick using trilinear interpolation.

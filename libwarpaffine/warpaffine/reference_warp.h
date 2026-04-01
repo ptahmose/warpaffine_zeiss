@@ -7,6 +7,7 @@
 #include <Eigen/Eigen>
 #include <limits>
 #include <algorithm>
+#include <type_traits>
 #include "../brick.h"
 #include "../geotypes.h"
 #include "../cmdlineoptions_enums.h"
@@ -33,6 +34,25 @@ private:
     void DoNearestNeighbor();
     void DoLinearInterpolation();
     [[noreturn]] void ThrowUnsupportedPixelType();
+
+    /// Clamp and convert an interpolated double value to pixel type t.
+    /// For integer types: clamp to [0, max] (branchless) and round to nearest integer
+    /// via add-0.5-then-truncate (vaddsd + vcvttsd2si, no CRT call).
+    /// Equivalent to lround for non-negative inputs (guaranteed by the clamp).
+    /// For floating-point types: cast directly without rounding (preserves fractional result).
+    template <typename t>
+    static t ClampAndRound(double c)
+    {
+        if constexpr (std::is_floating_point<t>::value)
+        {
+            return static_cast<t>(c);
+        }
+        else
+        {
+            const double clamped = std::clamp(c, 0.0, static_cast<double>(std::numeric_limits<t>::max()));
+            return static_cast<t>(static_cast<int32_t>(clamped + 0.5));
+        }
+    }
 
     static IntPos3 ToNearestNeighbor(const Eigen::Vector4d& position);
 
@@ -164,7 +184,7 @@ private:
 
         const double c = c0 * (1 - zd) + c1 * zd;
 
-        return (c < 0) ? 0 : c > static_cast<double>(std::numeric_limits<t>::max()) ? std::numeric_limits<t>::max() : static_cast<t>(lround(c));
+        return ClampAndRound<t>(c);
     }
 
     /// Sample with linear interpolation - where this method allows for the sampling point to be
@@ -217,7 +237,7 @@ private:
 
         const double c = c0 * (1 - zd) + c1 * zd;
 
-        return (c < 0) ? 0 : c > static_cast<double>(std::numeric_limits<t>::max()) ? std::numeric_limits<t>::max() : static_cast<t>(lround(c));
+        return ClampAndRound<t>(c);
     }
 
     template <typename t>
