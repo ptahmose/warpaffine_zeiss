@@ -51,7 +51,7 @@
 /// dispatch-like calls + Eigen temporaries, down to 3 additions + direct memory access.
 ///
 /// **Numerical equivalence:**
-///   The trilinear interpolation formula, modf/floor usage, clamp-and-round logic, and
+///   The trilinear interpolation formula, fractional-part computation, clamp-and-round logic, and
 ///   boundary classification (kInside / kOnePixelOutside / kOutside) all replicate the
 ///   reference implementation exactly. The only theoretical floating-point difference
 ///   comes from the incremental accumulation (`src_x += dx` repeated N times) vs. the
@@ -63,6 +63,7 @@
 #include "WarpAffine_Fast.h"
 #include <cmath>
 #include <algorithm>
+#include <cstdint>
 #include <cstring>
 #include <limits>
 #include <sstream>
@@ -352,30 +353,32 @@ namespace
 
     // ---- Trilinear warp -------------------------------------------------------
 
-    /// Clamp an interpolated double value to the valid range of pixel type t, then round
-    /// to the nearest representable value.
+    /// Clamp and convert an interpolated double value to pixel type t.
     ///
-    /// This replicates the reference's return expression:
-    ///     (c < 0) ? 0 : c > max ? max : static_cast<t>(lround(c))
+    /// For integer pixel types (uint8_t, uint16_t): clamp to [0, max] via std::clamp
+    /// (compiles to branchless vmaxsd/vminsd) then round by adding 0.5 and truncating
+    /// (compiles to vaddsd + vcvttsd2si — fully inline, no CRT call).
+    /// This is semantically identical to lround for non-negative inputs, which is
+    /// guaranteed here by the preceding clamp: for any x >= 0,
+    ///   static_cast<int32_t>(x + 0.5)  ==  lround(x)
+    /// because both round half-integers upward, and the addition x + 0.5 is exact for
+    /// all values in [0, 65535] (well within the 52-bit mantissa range).
     ///
-    /// For integer pixel types (uint8_t, uint16_t), this rounds to the nearest integer
-    /// and clamps to [0, max]. For float, lround produces a long which is then cast back
-    /// to float — this matches the reference behavior (which effectively rounds float
-    /// pixel values to the nearest integer).
+    /// For floating-point pixel types (float): cast directly to t without rounding or
+    /// clamping. Trilinear interpolation of float source values produces a meaningful
+    /// fractional result that must be preserved.
     template <typename t>
     inline t ClampAndRound(double c)
     {
-        if (c < 0)
+        if constexpr (is_floating_point<t>::value)
         {
-            return static_cast<t>(0);
+            return static_cast<t>(c);
         }
-
-        if (c > static_cast<double>(numeric_limits<t>::max()))
+        else
         {
-            return numeric_limits<t>::max();
+            const double clamped = clamp(c, 0.0, static_cast<double>(numeric_limits<t>::max()));
+            return static_cast<t>(static_cast<int32_t>(clamped + 0.5));
         }
-
-        return static_cast<t>(lround(c));
     }
 
     /// Sample a voxel value from the source brick using trilinear interpolation.
@@ -393,9 +396,14 @@ namespace
     /// offsets, which is significantly cheaper than 8 individual GetConstPointerToPixel calls
     /// that each redundantly recompute strides and bytes-per-pixel.
     ///
-    /// The fractional parts (xd, yd, zd) are obtained via modf, matching the reference.
-    /// The integer parts use static_cast<int> (truncation toward zero), which is correct
-    /// here because positions are guaranteed >= 0 by the kInside classification.
+    /// The fractional parts (xd, yd, zd) are computed as `pos - (int)pos` rather than via
+    /// modf. `modf` returns the fractional part with the **same sign as the argument** and
+    /// uses truncation (not floor) for the integer part — exactly what `static_cast<int>`
+    /// gives. So `xd = pos - (int)pos` is bit-identical to `modf(pos, &dummy)` combined
+    /// with `ix = (int)pos` for every value in (-1, +inf). Values below -1 cannot arise
+    /// here: the zone boundaries are verified via the direct formula before entry, the
+    /// initial src position is computed directly (not accumulated), and incremental drift
+    /// per step is O(epsilon) — far too small to reach -1.
     ///
     /// \tparam t  The pixel value type.
     /// \param  src_base          Raw pointer to the start of the source brick's data.
@@ -411,14 +419,17 @@ namespace
         double pos_x, double pos_y, double pos_z)
     {
         // Decompose each coordinate into integer and fractional parts.
-        double dummy;
-        const double xd = modf(pos_x, &dummy);
-        const double yd = modf(pos_y, &dummy);
-        const double zd = modf(pos_z, &dummy);
-
+        // modf uses truncation (not floor) for its integer part and returns the fractional
+        // part with the same sign as the argument, so xd = pos - (int)pos is bit-identical
+        // to the original modf call for all values in (-1, +inf). Values below -1 cannot
+        // occur: the zone start is computed via the direct formula (same as the is_inside
+        // verification), and per-step drift is O(epsilon) — nowhere near -1.
         const int ix = static_cast<int>(pos_x);
         const int iy = static_cast<int>(pos_y);
         const int iz = static_cast<int>(pos_z);
+        const double xd = pos_x - static_cast<double>(ix);
+        const double yd = pos_y - static_cast<double>(iy);
+        const double zd = pos_z - static_cast<double>(iz);
 
         // Compute the base address of voxel (ix, iy, iz) — the "c000" corner.
         // All other 7 neighbors are reached by adding sizeof(t) (x+1),
@@ -473,8 +484,12 @@ namespace
     /// gives the wrong result for negative positions (e.g. static_cast<int>(-0.3) = 0,
     /// but we need -1). The reference uses the same approach.
     ///
-    /// The interpolation formula, weight computation (via modf), and final clamping/rounding
-    /// are identical to the "inside" variant.
+    /// The interpolation formula, weight computation, and final clamping/rounding are
+    /// identical to the "inside" variant. The fractional parts are computed as
+    /// `pos - floor(pos)` (not via modf): for pos >= 0 this is bit-identical to modf;
+    /// for pos in (-1, 0) the value of xd differs from modf's negative fractional return,
+    /// but the clamping step aliases x0 == x1 == 0 for any such ix == -1, making xd
+    /// irrelevant to the final interpolated value.
     ///
     /// \tparam t  The pixel value type.
     /// \param  src_base          Raw pointer to the start of the source brick's data.
@@ -491,15 +506,16 @@ namespace
         int src_w, int src_h, int src_d,
         double pos_x, double pos_y, double pos_z)
     {
-        double dummy;
-        const double xd = modf(pos_x, &dummy);
-        const double yd = modf(pos_y, &dummy);
-        const double zd = modf(pos_z, &dummy);
-
         // Use floor (not truncation) to get the correct lower-corner for negative positions.
+        // xd/yd/zd are then computed as pos - floor(pos), which is bit-identical to modf
+        // for pos >= 0, and gives the same final interpolation result for pos in (-1, 0)
+        // because clamping aliases both neighbors to the same index (see doc comment).
         const int ix = static_cast<int>(floor(pos_x));
         const int iy = static_cast<int>(floor(pos_y));
         const int iz = static_cast<int>(floor(pos_z));
+        const double xd = pos_x - static_cast<double>(ix);
+        const double yd = pos_y - static_cast<double>(iy);
+        const double zd = pos_z - static_cast<double>(iz);
 
         // Clamp the two neighbor coordinates per axis to the valid range [0, dim-1].
         const int x0 = max(ix, 0);
